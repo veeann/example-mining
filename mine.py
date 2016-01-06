@@ -1,11 +1,7 @@
-import urllib2
-import re
 from urllib2 import urlopen, URLError
 from urlparse import urljoin, urlparse
 from argparse import ArgumentParser
-from bs4 import BeautifulSoup, SoupStrainer
-from bs4.element import Tag
-from lxml import etree
+from bs4 import BeautifulSoup
 
 base_url = ""
 pages = []
@@ -36,18 +32,11 @@ def get_links(url):
 			if next_link not in pages:
 				get_links(next_link)
 
-def extract(link):
-	try:
-		resp = urlopen(link)
-	except URLError as e:
-		return
+	print "page: " + url
+	extract(soup)
 
-	soup = BeautifulSoup(resp.read(), "lxml")
-	count =0
-	for possible_code in soup.findAll('pre'):
-		print count
+def extract(page):
+	for possible_code in page.findAll('pre'):
 		print possible_code.text
-		count += 1
 
-
-extract('https://github.com/cglib/cglib/wiki/Tutorial')
+parse_arguments()
