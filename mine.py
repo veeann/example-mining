@@ -23,6 +23,8 @@ def parse_arguments():
 	get_links(base_url)
 
 def get_links(url):
+	visited_pages.append(url)
+
 	if url.startswith(base_url) == False:
 		return
 
@@ -31,9 +33,9 @@ def get_links(url):
 	except URLError as e:
 		return
 
-	visited_pages.append(url)
 	page = resp.read()
 	soup = BeautifulSoup(page, "lxml")
+	#print "visiting: " + url
 
 	for link in soup.findAll('a'):
 		if link.has_attr('href'):
@@ -42,15 +44,17 @@ def get_links(url):
 			the next three lines after this comment make sure that the same page isn't visited multiple times under "different" URLs
 			checking is rather brute force and perhaps can still be improved
 			'''
-			end_index = next_link.rfind('/')+1
-			if end_index<len(next_link) and next_link[end_index]=="#":
-				next_link = next_link[:end_index]
+			last_slash = next_link.rfind('/')
+			hash_sign = next_link.rfind('#')
+			if hash_sign!=-1 and last_slash<hash_sign:
+				next_link = next_link[:hash_sign]
 			if next_link not in visited_pages:
 				get_links(next_link)
 	extract(soup)
 
 '''
 consider adding results of island parser to see if that will improve results since focus is only on Java
+also add splitting for introductory sentences using : delimiter
 '''
 def extract(page):
 	for possible_code in page.findAll():
@@ -66,9 +70,11 @@ def extract(page):
 			# 	print "CONFUSED m(T__T)m"
 
 def get_error_ratio (text):
+	word_count = len(text.split())
+	if word_count <= 0:
+		return 0.0
 	errors = nl_tool.check(text)
 	error_count = len(errors)
-	word_count = len(text.split())
 	error_ratio = float(error_count) / float(word_count)
 	#print "error count: " + str(error_count) + " error ratio: " + str(error_ratio)
 	return error_ratio
@@ -78,10 +84,9 @@ find a more efficient way to do this
 '''
 def get_punctuation_ratio (text):
 	word_count = len(text.split())
-	punctuation_count = 0
-	for index in range (len(text)):
-		if text[index]==';' or text[index]=='(' or text[index]==')' or text[index]=='=':
-			punctuation_count = punctuation_count + 1
+	if word_count <= 0:
+		return 0.0
+	punctuation_count = text.count(';') + text.count('(') + text.count(')') + text.count('=')
 	punctuation_ratio = float(punctuation_count) / float(word_count)
 	#print "punctuation count: " + str(punctuation_count) + " punctuation ratio: " + str(punctuation_ratio)
 	return punctuation_ratio
