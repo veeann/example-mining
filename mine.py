@@ -1,3 +1,6 @@
+'''
+debug text are commented with #
+'''
 from urllib2 import urlopen, URLError
 from urlparse import urljoin, urlparse
 from argparse import ArgumentParser
@@ -5,8 +8,10 @@ from bs4 import BeautifulSoup
 import language_check
 
 base_url = ""
-pages = []
+visited_pages = []
 nl_tool = language_check.LanguageTool('en-US')
+ERROR_RATIO_THRESHOLD = 0.5
+PUNCTUATION_RATIO_THRESHOLD = 0.2
 
 def parse_arguments():
 	parser = ArgumentParser(description='Accept Keywords from Users')
@@ -26,38 +31,59 @@ def get_links(url):
 	except URLError as e:
 		return
 
-	pages.append(url)
-	soup = BeautifulSoup(resp.read(), "lxml")
-	'''
-	#currently checks only the given page
-	#uncomment this part in order to crawl the website
+	visited_pages.append(url)
+	page = resp.read()
+	soup = BeautifulSoup(page, "lxml")
+
 	for link in soup.findAll('a'):
 		if link.has_attr('href'):
 			next_link = urljoin(base_url,link['href'])
-			if next_link not in pages:
+			'''
+			the next three lines after this comment make sure that the same page isn't visited multiple times under "different" URLs
+			checking is rather brute force and perhaps can still be improved
+			'''
+			end_index = next_link.rfind('/')+1
+			if end_index<len(next_link) and next_link[end_index]=="#":
+				next_link = next_link[:end_index]
+			if next_link not in visited_pages:
 				get_links(next_link)
-	'''
 	extract(soup)
 
 '''
-finds code samples only based on NL errors
-checking for punctuations to come soon
+consider adding results of island parser to see if that will improve results since focus is only on Java
 '''
 def extract(page):
 	for possible_code in page.findAll():
 		if possible_code.name=='p' or possible_code.name=='pre':
-			errors = nl_tool.check(possible_code.text)
-			error_count = 0
-			word_count = len(possible_code.text.split())
-			for error in errors:
-				error_count = error_count + 1
-			error_ratio = float(error_count) / float(word_count)
-			print possible_code.text
-			print "errors: " + str(error_count) + " ratio: " + str(error_ratio)
-			if error_ratio >= 0.5:
-				print "SOURCE CODE \(*O*)/"
-			else:
-				print "NATURAL LANGUAGE (.____.)"
-			print ""
+			error_ratio = get_error_ratio(possible_code.text)
+			punctuation_ratio = get_punctuation_ratio(possible_code.text)
+			if error_ratio >= ERROR_RATIO_THRESHOLD and punctuation_ratio >= PUNCTUATION_RATIO_THRESHOLD:
+				# print "SOURCE CODE \(*O*)/"
+				print possible_code.text
+			# elif error_ratio < ERROR_RATIO_THRESHOLD and punctuation_ratio < PUNCTUATION_RATIO_THRESHOLD:
+			# 	print "NATURAL LANGUAGE (.__.)"
+			# else:
+			# 	print "CONFUSED m(T__T)m"
+
+def get_error_ratio (text):
+	errors = nl_tool.check(text)
+	error_count = len(errors)
+	word_count = len(text.split())
+	error_ratio = float(error_count) / float(word_count)
+	#print "error count: " + str(error_count) + " error ratio: " + str(error_ratio)
+	return error_ratio
+
+'''
+find a more efficient way to do this
+'''
+def get_punctuation_ratio (text):
+	word_count = len(text.split())
+	punctuation_count = 0
+	for index in range (len(text)):
+		if text[index]==';' or text[index]=='(' or text[index]==')' or text[index]=='=':
+			punctuation_count = punctuation_count + 1
+	punctuation_ratio = float(punctuation_count) / float(word_count)
+	#print "punctuation count: " + str(punctuation_count) + " punctuation ratio: " + str(punctuation_ratio)
+	return punctuation_ratio
 
 parse_arguments()
