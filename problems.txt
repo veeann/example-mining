@@ -1,3 +1,0 @@
-PROBLEMS:
-- crawling the API docs / div links (e.g. https://commons.apache.org/proper/commons-io/javadocs/api-2.2/index.html)
-- encoding errors (e.g. http://x-stream.github.io/jira/757/)
