@@ -19,8 +19,12 @@ def parse_arguments():
 	args = parser.parse_args()
 	global base_url
 	global domain
-	base_url = args.url
-	get_links(base_url)
+	url_parts = urlparse(args.url)
+	url_path = url_parts.path
+	base_url = url_parts.scheme + '://' + url_parts.netloc + url_path
+	if url_path.rfind('/') < url_path.rfind('.'):
+		base_url = base_url[:base_url.rfind('/')]
+	get_links(args.url)
 
 def get_links(url):
 	visited_pages.append(url)
@@ -39,10 +43,11 @@ def get_links(url):
 
 	for link in soup.findAll('a'):
 		if link.has_attr('href'):
-			next_link = urljoin(base_url,link['href'])
+			next_link = urljoin(url,link['href'])
 			'''
 			the next three lines after this comment make sure that the same page isn't visited multiple times under "different" URLs
 			checking is rather brute force and perhaps can still be improved
+			may not be case exhaustive or may capture wrong cases
 			'''
 			last_slash = next_link.rfind('/')
 			hash_sign = next_link.rfind('#')
