@@ -2,7 +2,7 @@
 debug text are commented with #
 '''
 from urllib2 import urlopen, URLError
-from urlparse import urljoin, urlparse
+from urlparse import urljoin, urlparse, urldefrag
 from argparse import ArgumentParser
 from bs4 import BeautifulSoup
 import language_check
@@ -39,20 +39,12 @@ def get_links(url):
 
 	page = resp.read()
 	soup = BeautifulSoup(page, "lxml")
-	#print "visiting: " + url
+	print "visiting: " + url
 
 	for link in soup.findAll('a'):
 		if link.has_attr('href'):
 			next_link = urljoin(url,link['href'])
-			'''
-			the next three lines after this comment make sure that the same page isn't visited multiple times under "different" URLs
-			checking is rather brute force and perhaps can still be improved
-			may not be case exhaustive or may capture wrong cases
-			'''
-			last_slash = next_link.rfind('/')
-			hash_sign = next_link.rfind('#')
-			if hash_sign!=-1 and last_slash<hash_sign:
-				next_link = next_link[:hash_sign]
+			next_link = urldefrag(next_link)[0]
 			if next_link not in visited_pages:
 				get_links(next_link)
 	extract(soup)
