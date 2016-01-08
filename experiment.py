@@ -3,41 +3,24 @@ trying out different methods
 full of debug text
 variable names may not always be descriptive
 '''
-from urllib2 import urlopen, URLError
-from urlparse import urljoin, urlparse, urldefrag
-from argparse import ArgumentParser
-from bs4 import BeautifulSoup, UnicodeDammit
 import language_check
 import re
 
 nl_tool = language_check.LanguageTool('en-US')
-PUNCTUATION_LIST = [';', '(', ')', '=', '{', '}', '/']
-ERROR_RATIO_THRESHOLD = 0.43
-PUNCTUATION_RATIO_THRESHOLD = 0.2
+PUNCTUATION_LIST = [';', '(', ')', '=', '{', '}', '/', '[', ']']
+ERROR_RATIO_THRESHOLD = 0.4
+PUNCTUATION_RATIO_THRESHOLD = 0.5
 
-def parse_arguments():
-	parser = ArgumentParser(description='Accept Keywords from Users')
-	parser.add_argument('-u', '--url', help='URL of webpage to scrape from', required=True)
-	args = parser.parse_args()
-	get_links(args.url)
-
-def get_links(url):
-	try:
-		resp = urlopen(url)
-	except URLError as e:
-		return
-
-	page = resp.read()
-	dammit = UnicodeDammit.detwingle(page)
-	soup = BeautifulSoup(dammit.decode("utf8"), "lxml")
-	extract(soup)
-
-def extract(page):
-	for line in page.html.text.splitlines():
-		#print line.encode("utf-8")
-		word_count = get_word_count(line)
-		if get_punctuation_ratio(line, word_count) >= PUNCTUATION_RATIO_THRESHOLD:
-			print line.encode("utf-8")
+def is_source_code(text):
+	print "analyzing: "
+	print text + "\n"
+	word_count = get_word_count(text)
+	error_ratio = get_error_ratio(text, word_count)
+	punctuation_ratio = get_punctuation_ratio(text, word_count)
+	if error_ratio >= ERROR_RATIO_THRESHOLD:
+		print "SOURCE CODE!"
+	elif punctuation_ratio >= PUNCTUATION_RATIO_THRESHOLD:
+		print "SOURCE CODE!"
 
 def get_word_count (text):
 	words = text.split()
@@ -53,7 +36,7 @@ def get_error_ratio (text, word_count):
 	errors = nl_tool.check(text)
 	error_count = len(errors)
 	error_ratio = float(error_count) / float(word_count)
-	#print "error count: " + str(error_count) + " error ratio: " + str(error_ratio)
+	print "error count: " + str(error_count) + " error ratio: " + str(error_ratio)
 	return error_ratio
 
 def get_punctuation_ratio (text, word_count):
@@ -63,17 +46,23 @@ def get_punctuation_ratio (text, word_count):
 	for punctuation in PUNCTUATION_LIST:
 		punctuation_count += text.count(punctuation)
 	punctuation_ratio = float(punctuation_count) / float(word_count)
-	#print "punctuation count: " + str(punctuation_count) + " punctuation ratio: " + str(punctuation_ratio)
+	print "punctuation count: " + str(punctuation_count) + " punctuation ratio: " + str(punctuation_ratio)
 	return punctuation_ratio
 
-parse_arguments()
+text_to_test = open('C:\\Users\\V-ann\\Desktop\\testing.txt', 'r')
+is_source_code(text_to_test.read())
+text_to_test.close
 
 '''
-RULES to try:
-import with ;
-{ }
-x.x
-// comment
-!x
-()
+RULES and WEIGHTS
+Punctuation = 50
+Grammar = 50
+
+Instances of !x = 90
+Instances of () = 100
+Instances of //x where x is NL = 90
+Instances of {, }, =, ;, (, ) = 70
+Instances of x.x = 70
+Instances of import ... ; = 80
+TOTAL: 500
 '''
