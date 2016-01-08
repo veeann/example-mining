@@ -20,7 +20,6 @@ def parse_arguments():
 	parser.add_argument('-u', '--url', help='URL of webpage to scrape from', required=True)
 	args = parser.parse_args()
 	global base_url
-	global domain
 	url_parts = urlparse(args.url)
 	url_path = url_parts.path
 	base_url = url_parts.scheme + '://' + url_parts.netloc + url_path
@@ -41,7 +40,7 @@ def get_links(url):
 
 	page = resp.read()
 	soup = BeautifulSoup(page, "lxml")
-	#print "visiting: " + url
+	print "visiting: " + url
 
 	'''
 	for link in soup.findAll('a'):
@@ -61,18 +60,10 @@ also add splitting for introductory sentences using : delimiter
 def extract(page):
 	for possible_code in page.findAll():
 		if possible_code.name=='p' or possible_code.name=='pre':
-			'''
-			maybe there is a better way to do this
-			maybe this is not the right way
-			'''
-			words = possible_code.text.split()
-			word_count = len(words)
-			for word in words:
-				if re.search('[a-zA-Z]', word) < 0:
-					word_count -= 1
+			word_count = get_word_count(possible_code.text)
 			error_ratio = get_error_ratio(possible_code.text, word_count)
 			punctuation_ratio = get_punctuation_ratio(possible_code.text, word_count)
-			print possible_code.text
+			print possible_code.text.encode("utf-8")
 			print word_count
 			if error_ratio >= ERROR_RATIO_THRESHOLD and punctuation_ratio >= PUNCTUATION_RATIO_THRESHOLD:
 				print "SOURCE CODE \(*O*)/"
@@ -81,6 +72,18 @@ def extract(page):
 			else:
 				print "CONFUSED m(T__T)m"
 			print ""
+
+'''
+maybe there is a better way to do this
+maybe this is not the right way
+'''
+def get_word_count (text):
+	words = text.split()
+	word_count = len(words)
+	for word in words:
+		if re.search('[a-zA-Z]', word) < 0:
+			word_count -= 1
+	return word_count
 
 def get_error_ratio (text, word_count):
 	if word_count <= 0:
