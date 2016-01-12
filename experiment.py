@@ -31,6 +31,7 @@ CODE_TOTAL = PUNCTUATION_WEIGHT + PARENTHESIS_WEIGHT + NEGATION_WEIGHT + COMMENT
 SCORE_THRESHOLD = 0.1
 
 def is_source_code(text):
+	text = clean(text)
 	word_count = get_word_count(text)
 	error_ratio = get_error_ratio(text, word_count) * ERROR_WEIGHT
 	code_ratio = get_code_ratio(text, word_count) * CODE_WEIGHT
@@ -40,6 +41,14 @@ def is_source_code(text):
 	if score >= SCORE_THRESHOLD:
 		return True
 	return False
+
+def clean (text):
+	lines = text.replace('\r','\n').split("\n")
+	new_text = ""
+	for line in lines:
+		if not line.strip()=="":
+			new_text += line + "\n"
+	return new_text
 
 def get_word_count (text):
 	words = text.split()

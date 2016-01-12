@@ -81,8 +81,9 @@ def extract(page):
 	for possible_code in page.findAll():
 		if possible_code.name=='p' or possible_code.name=='pre':
 			print "analyzing:"
-			print possible_code.text.encode("utf-8")
-			if is_source_code(possible_code.text):
+			cleaned_text = clean(possible_code.text)
+			print cleaned_text.encode("utf-8")
+			if is_source_code(cleaned_text):
 				print "RESULT: SOURCE CODE \(*O*)/"
 			else:
 				print "RESULT: NATURAL LANGUAGE (.__.)"
@@ -98,6 +99,14 @@ def is_source_code(text):
 	if score >= SCORE_THRESHOLD:
 		return True
 	return False
+
+def clean (text):
+	lines = text.replace('\r','\n').split("\n")
+	new_text = ""
+	for line in lines:
+		if not line.strip()=="":
+			new_text += line + "\n"
+	return new_text
 
 '''
 maybe there is a better way to do this

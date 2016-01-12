@@ -1,4 +1,12 @@
-Pages Tested for Extraction:
+I tested the same pages I used before and found that the results are much better. Eight out of the ten pages perfectly identified all source codes. As for the other two, all source codes were still identified but there were extras. These extras were 4 output samples, 4 xml, and only 1 real natural language sentence. Based on a quick check, the NL sentence may have been mistaken for a source code because it was filled with method names.
+
+I then tested the program on an additional 10 pages; this time, I focused on non-GitHub pages. These include 2 pages each from the four non-GitHub websites you sent before, 1 page from the Java API, and 1 page from a random website.
+
+In all ten pages, all source codes were identified. However, only three of those pages did not have extras. What is most noticeable is that in all Apache Commons pages, the natural language parts have unneccessary tabs and/or spaces between words or phrases, resulting in the natural language grammar checker to report these as grammatical errors. Consequently, my program also thinks they are source codes because of the errors. I managed to lessen the number of wrong classification by ignoring all blank lines, but I found it difficult to erase tabs and multiple spaces as I might be deleting them from source codes which need them.
+
+Details are as follows:
+
+Pages Tested for Extraction Before:
  - https://github.com/cglib/cglib/wiki/Tutorial
 
  - https://github.com/cglib/cglib/wiki/How-To
@@ -21,4 +29,39 @@ Pages Tested for Extraction:
 
  - http://www.slf4j.org/manual.html
  	* 1 NL classified as source code; it had some code words
- 	** 3 maven dependency pom.xml files classified as source code
+ 	* 3 maven dependency pom.xml files classified as source code
+
+Additional Pages Tested:
+ - https://commons.apache.org/proper/commons-io/description.html
+ 	* 10 NL classified as source code
+ 	* Nine with too many line breaks in between phrases of the same sentence; also multiple spaces
+ 	* One with a link
+
+ - https://commons.apache.org/proper/commons-io/bestpractices.html
+ 	* 3 NL classified as source code
+ 	* Two are "            Instead of:" and "            ...write:"
+ 	* One with too many line breaks in between phrases of the same sentence and multiple spaces
+
+ - https://commons.apache.org/proper/commons-logging/guide.html
+ 	* 1 NL classified as source code; too many line breaks and multiple spaces
+
+ - https://commons.apache.org/proper/commons-logging/javadocs/api-release/org/apache/commons/logging/Log.html
+
+ - http://x-stream.github.io/tutorial.html
+ 	* 1 xml file classified as source code
+
+ - http://x-stream.github.io/persistence-tutorial.html
+ 	* 1 NL classified as source code
+ 	* It was an output and had many line breaks and incomplete sentences
+
+ - http://easymock.org/user-guide.html
+ 	* 2 maven dependency pom.xml files classifed as source code
+ 	* 1 NL classified as source code; has method calls.
+
+ - http://easymock.org/api/org/easymock/EasyMockSupport.html
+
+ - http://www.i-programmer.info/ebooks/modern-java/1665-writing-java-code-methods.html?start=2
+ 	* 1 NL classified as source code; had preceeding spaces and only two words
+ 	* Footer classified as source code
+
+ - https://docs.oracle.com/javase/7/docs/api/java/util/Enumeration.html
