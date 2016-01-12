@@ -11,9 +11,28 @@ import re
 base_url = ""
 visited_pages = []
 nl_tool = language_check.LanguageTool('en-US')
-PUNCTUATION_LIST = [';', '(', ')', '=', '{', '}', '/']
-ERROR_RATIO_THRESHOLD = 0.43
-PUNCTUATION_RATIO_THRESHOLD = 0.2
+PUNCTUATION_LIST = [';', '(', ')', '=', '{', '}', '[', ']']
+
+'''
+highest ratio is equal to weight
+'''
+ERROR_WEIGHT = 0.7
+CODE_WEIGHT = 0.9
+SCORE_TOTAL = ERROR_WEIGHT + CODE_WEIGHT
+
+'''
+ratios range from 0-1 without weight, highest is weight with weight
+get decimal percentage of total to limit to 1
+'''
+PUNCTUATION_WEIGHT = 0.7
+PARENTHESIS_WEIGHT = 1.0
+NEGATION_WEIGHT = 0.8
+COMMENT_WEIGHT = 0.7
+METHOD_WEIGHT = 0.5
+IMPORT_WEIGHT = 0.8
+CODE_TOTAL = PUNCTUATION_WEIGHT + PARENTHESIS_WEIGHT + NEGATION_WEIGHT + COMMENT_WEIGHT + METHOD_WEIGHT + IMPORT_WEIGHT
+
+SCORE_THRESHOLD = 0.1
 
 def parse_arguments():
 	parser = ArgumentParser(description='Accept Keywords from Users')
@@ -56,22 +75,29 @@ def get_links(url):
 '''
 consider adding results of island parser to see if that will improve results since focus is only on Java
 also add splitting for introductory sentences using : delimiter
+use UnicodeDammit so encoding isn't hardcoded
 '''
 def extract(page):
 	for possible_code in page.findAll():
 		if possible_code.name=='p' or possible_code.name=='pre':
-			word_count = get_word_count(possible_code.text)
-			error_ratio = get_error_ratio(possible_code.text, word_count)
-			punctuation_ratio = get_punctuation_ratio(possible_code.text, word_count)
+			print "analyzing:"
 			print possible_code.text.encode("utf-8")
-			print word_count
-			if error_ratio >= ERROR_RATIO_THRESHOLD and punctuation_ratio >= PUNCTUATION_RATIO_THRESHOLD:
-				print "SOURCE CODE \(*O*)/"
-			elif error_ratio < ERROR_RATIO_THRESHOLD and punctuation_ratio < PUNCTUATION_RATIO_THRESHOLD:
-				print "NATURAL LANGUAGE (.__.)"
+			if is_source_code(possible_code.text):
+				print "RESULT: SOURCE CODE \(*O*)/"
 			else:
-				print "CONFUSED m(T__T)m"
+				print "RESULT: NATURAL LANGUAGE (.__.)"
 			print ""
+
+def is_source_code(text):
+	word_count = get_word_count(text)
+	error_ratio = get_error_ratio(text, word_count) * ERROR_WEIGHT
+	code_ratio = get_code_ratio(text, word_count) * CODE_WEIGHT
+	score = error_ratio + code_ratio
+	score = score / SCORE_TOTAL
+	print "score: " + str(score)
+	if score >= SCORE_THRESHOLD:
+		return True
+	return False
 
 '''
 maybe there is a better way to do this
@@ -91,20 +117,55 @@ def get_error_ratio (text, word_count):
 	errors = nl_tool.check(text)
 	error_count = len(errors)
 	error_ratio = float(error_count) / float(word_count)
-	print "error count: " + str(error_count) + " error ratio: " + str(error_ratio)
 	return error_ratio
 
-'''
-find a more efficient way to do this
-'''
-def get_punctuation_ratio (text, word_count):
+def get_code_ratio (text, word_count):
 	if word_count <= 0:
 		return 0.0
+	punctuation_ratio = get_punctuation_occurrences(text)  / float(word_count) * PUNCTUATION_WEIGHT
+	parenthesis_ratio = get_parentheses_occurrences(text)  / float(word_count) * PARENTHESIS_WEIGHT
+	negation_ratio = get_negation_occurrences(text)  / float(word_count) * NEGATION_WEIGHT
+	comment_ratio = get_comment_occurrences(text)  / float(word_count) * COMMENT_WEIGHT
+	method_ratio = get_method_occurrences(text)  / float(word_count) * METHOD_WEIGHT
+	import_ratio = get_import_occurrences(text)  / float(word_count) * IMPORT_WEIGHT
+	code_ratio = punctuation_ratio + parenthesis_ratio + negation_ratio + comment_ratio + method_ratio + import_ratio
+	code_ratio = code_ratio / CODE_TOTAL
+	return code_ratio
+
+'''
+find a more efficient way to do this if possible
+'''
+def get_punctuation_occurrences (text):
 	punctuation_count = 0
 	for punctuation in PUNCTUATION_LIST:
 		punctuation_count += text.count(punctuation)
-	punctuation_ratio = float(punctuation_count) / float(word_count)
-	print "punctuation count: " + str(punctuation_count) + " punctuation ratio: " + str(punctuation_ratio)
-	return punctuation_ratio
+	return punctuation_count
+
+def get_parentheses_occurrences (text):
+	parenthesis_count = text.count("()")
+	return parenthesis_count
+
+def get_negation_occurrences (text):
+	negation_count = len(re.findall("![a-zA-Z=]+", text))
+	return negation_count
+
+'''
+possibly include asterisks for comments
+'''
+def get_comment_occurrences (text):
+	possible_comments = re.findall("//[ \t\r\f\v\S]+", text)
+	comment_count = 0
+	for result in possible_comments:
+		if not is_source_code(result[2:]):
+			comment_count += 1
+	return comment_count
+
+def get_method_occurrences (text):
+	method_count = len(re.findall("[\S]+\.[\S]+", text))
+	return method_count
+
+def get_import_occurrences (text):
+	import_count = len(re.findall("import [a-zA-Z0-9. ]+;", text))
+	return import_count
 
 parse_arguments()

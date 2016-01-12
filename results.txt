@@ -1,0 +1,29 @@
+Pages Tested for Extraction:
+ - https://github.com/cglib/cglib/wiki/Tutorial
+
+ - https://github.com/cglib/cglib/wiki/How-To
+
+ - https://github.com/google/guice/wiki/GettingStarted
+
+ - https://github.com/google/guice/wiki/Motivation
+
+ - https://github.com/google/guice/wiki/MinimizeMutability
+
+ - https://github.com/google/gson/blob/master/UserGuide.md
+ 	* Note: slow because of size even though it is just one page
+ 	* 1 maven dependency pom.xml file classified as source code
+ 	* 1 NL classified as source code ("Finer points with Serializers and Deserializers")
+ 	* The 4 output examples were classified as source code
+
+ - https://github.com/junit-team/junit/wiki/Assertions
+
+ - https://github.com/junit-team/junit/wiki/'Enclosed'-test-runner-example
+
+ - http://joel-costigliola.github.io/assertj/assertj-core-custom-assertions.html
+
+ - http://www.slf4j.org/manual.html
+ 	* 9 NL classified as source code
+ 	* Five contained many version numbers mistakenly seen by program as a method call.
+ 	* Two I don't know why.
+ 	* Two had a lot of code words
+ 	* 3 maven dependency pom.xml files classified as source code
