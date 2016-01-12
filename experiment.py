@@ -12,8 +12,8 @@ PUNCTUATION_LIST = [';', '(', ')', '=', '{', '}', '[', ']']
 '''
 highest ratio is equal to weight
 '''
-ERROR_WEIGHT = 0.7
-CODE_WEIGHT = 0.9
+ERROR_WEIGHT = 0.4
+CODE_WEIGHT = 1.0
 SCORE_TOTAL = ERROR_WEIGHT + CODE_WEIGHT
 
 '''
@@ -36,7 +36,7 @@ def is_source_code(text):
 	code_ratio = get_code_ratio(text, word_count) * CODE_WEIGHT
 	score = error_ratio + code_ratio
 	score = score / SCORE_TOTAL
-	#print "score: " + str(score)
+	print "score: " + str(score)
 	if score >= SCORE_THRESHOLD:
 		return True
 	return False
@@ -54,8 +54,9 @@ def get_error_ratio (text, word_count):
 		return 0.0
 	errors = nl_tool.check(text)
 	error_count = len(errors)
+	print "error count: " + str(error_count)
 	error_ratio = float(error_count) / float(word_count)
-	#print "error ratio: " + str(error_ratio)
+	print "error ratio: " + str(error_ratio)
 	return error_ratio
 
 def get_code_ratio (text, word_count):
@@ -69,24 +70,24 @@ def get_code_ratio (text, word_count):
 	import_ratio = get_import_occurrences(text)  / float(word_count) * IMPORT_WEIGHT
 	code_ratio = punctuation_ratio + parenthesis_ratio + negation_ratio + comment_ratio + method_ratio + import_ratio
 	code_ratio = code_ratio / CODE_TOTAL
-	#print "code ratio: " + str(code_ratio)
+	print "code ratio: " + str(code_ratio)
 	return code_ratio
 
 def get_punctuation_occurrences (text):
 	punctuation_count = 0
 	for punctuation in PUNCTUATION_LIST:
 		punctuation_count += text.count(punctuation)
-	#print "punctuation: " + str(punctuation_count)
+	print "punctuation: " + str(punctuation_count)
 	return punctuation_count
 
 def get_parentheses_occurrences (text):
 	parenthesis_count = text.count("()")
-	#print "parenthesis: " + str(parenthesis_count)
+	print "parenthesis: " + str(parenthesis_count)
 	return parenthesis_count
 
 def get_negation_occurrences (text):
 	negation_count = len(re.findall("![a-zA-Z=]+", text))
-	#print "negation: " + str(negation_count)
+	print "negation: " + str(negation_count)
 	return negation_count
 
 def get_comment_occurrences (text):
@@ -95,17 +96,17 @@ def get_comment_occurrences (text):
 	for result in possible_comments:
 		if not is_source_code(result[2:]):
 			comment_count += 1
-	#print "comments: " + str(comment_count)
+	print "comments: " + str(comment_count)
 	return comment_count
 
 def get_method_occurrences (text):
-	method_count = len(re.findall("[\S]+\.[\S]+", text))
-	#print "methods: " + str(method_count)
+	method_count = len(re.findall("[a-zA-Z]+[a-zA-Z0-9_()\"]+\.[a-zA-Z]+", text))
+	print "methods: " + str(method_count)
 	return method_count
 
 def get_import_occurrences (text):
 	import_count = len(re.findall("import [a-zA-Z0-9. ]+;", text))
-	#print "imports: " + str(import_count)
+	print "imports: " + str(import_count)
 	return import_count
 
 text_to_test = open('C:\\Users\\V-ann\\Desktop\\testing.txt', 'r')

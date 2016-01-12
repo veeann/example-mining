@@ -16,8 +16,8 @@ PUNCTUATION_LIST = [';', '(', ')', '=', '{', '}', '[', ']']
 '''
 highest ratio is equal to weight
 '''
-ERROR_WEIGHT = 0.7
-CODE_WEIGHT = 0.9
+ERROR_WEIGHT = 0.4
+CODE_WEIGHT = 1.0
 SCORE_TOTAL = ERROR_WEIGHT + CODE_WEIGHT
 
 '''
@@ -161,7 +161,7 @@ def get_comment_occurrences (text):
 	return comment_count
 
 def get_method_occurrences (text):
-	method_count = len(re.findall("[\S]+\.[\S]+", text))
+	method_count = len(re.findall("[a-zA-Z]+[a-zA-Z0-9_()\"]+\.[a-zA-Z]+", text))
 	return method_count
 
 def get_import_occurrences (text):
