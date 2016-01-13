@@ -4,7 +4,7 @@ debug text are commented with #
 from urllib2 import urlopen, URLError
 from urlparse import urljoin, urlparse, urldefrag
 from argparse import ArgumentParser
-from bs4 import BeautifulSoup
+from bs4 import BeautifulSoup, UnicodeDammit
 import language_check
 import re
 
@@ -59,7 +59,7 @@ def get_links(url):
 
 	page = resp.read()
 	soup = BeautifulSoup(page, "lxml")
-	print "visiting: " + url
+	print "visiting: " + url + "\n"
 
 	'''
 	for link in soup.findAll('a'):
@@ -78,11 +78,27 @@ also add splitting for introductory sentences using : delimiter
 use UnicodeDammit so encoding isn't hardcoded
 '''
 def extract(page):
+	'''
+	# uncomment this code for line-by-line checking
+	# if you do, please comment out the current code
+	lines = page.text.replace('\r', '\n').split("\n")
+	for line in lines:
+		if is_source_code(line):
+			encoding = UnicodeDammit(line).original_encoding
+			if not encoding == None:
+				print line.encode(encoding)
+			else:
+				print line
+	'''
 	for possible_code in page.findAll():
 		if possible_code.name=='p' or possible_code.name=='pre':
 			print "analyzing:"
 			cleaned_text = clean(possible_code.text)
-			print cleaned_text.encode("utf-8")
+			encoding = UnicodeDammit(cleaned_text).original_encoding
+			if not encoding == None:
+				print cleaned_text.encode(encoding)
+			else:
+				print cleaned_text
 			if is_source_code(cleaned_text):
 				print "RESULT: SOURCE CODE \(*O*)/"
 			else:
@@ -95,7 +111,7 @@ def is_source_code(text):
 	code_ratio = get_code_ratio(text, word_count) * CODE_WEIGHT
 	score = error_ratio + code_ratio
 	score = score / SCORE_TOTAL
-	print "score: " + str(score)
+	#print "score: " + str(score)
 	if score >= SCORE_THRESHOLD:
 		return True
 	return False
@@ -162,10 +178,10 @@ def get_negation_occurrences (text):
 possibly include asterisks for comments
 '''
 def get_comment_occurrences (text):
-	possible_comments = re.findall("//[ \t\r\f\v\S]+", text)
+	possible_comments = re.findall("//[ \t\r\f\v\S]+\n", text)
 	comment_count = 0
 	for result in possible_comments:
-		if not is_source_code(result[2:]):
+		if not is_source_code(result[2:].strip()):
 			comment_count += 1
 	return comment_count
 
