@@ -59,17 +59,18 @@ def get_links(url):
 
 	page = resp.read()
 	soup = BeautifulSoup(page, "lxml")
-	print "visiting: " + url + "\n"
 
-	'''
 	for link in soup.findAll('a'):
 		if link.has_attr('href'):
+			if link.has_attr('class') and 'history' in link['class']:
+				continue
 			next_link = urljoin(url,link['href'])
 			next_link = urldefrag(next_link)[0]
 			if next_link not in visited_pages:
 				get_links(next_link)
-	'''
 
+	print "visiting: " + url + "\n"
+	
 	extract(soup)
 
 '''

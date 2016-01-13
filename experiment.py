@@ -8,6 +8,7 @@ It is full of debug text; variable names may not always be descriptive
 '''
 import language_check
 import re
+from bs4 import UnicodeDammit
 
 nl_tool = language_check.LanguageTool('en-US')
 PUNCTUATION_LIST = [';', '(', ')', '=', '{', '}', '[', ']']
