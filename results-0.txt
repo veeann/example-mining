@@ -1,0 +1,433 @@
+visiting: https://github.com/google/gson/blob/master/UserGuide.md
+
+
+
+  
+    
+    
+    
+    
+    
+    
+    gson/UserGuide.md at master · google/gson · GitHub
+    
+    
+    
+    
+    
+    
+    
+
+      
+      
+      
+    
+    
+    
+    
+    
+
+    
+    
+    
+
+    
+    
+
+
+
+
+
+
+  
+
+
+
+        
+    
+
+        
+
+      
+      
+
+    
+
+    
+    
+    
+    
+
+
+    
+
+      
+  
+  
+
+  
+  
+
+  
+
+
+  
+    
+
+
+
+
+
+
+
+
+
+RESULT: SOURCE CODE!
+
+
+Sign up
+Sign in
+
+RESULT: NATURAL LANGUAGE~
+
+
+RESULT: NATURAL LANGUAGE~
+
+
+
+Switch branches/tags
+
+RESULT: NATURAL LANGUAGE~
+
+
+
+
+
+                722
+              
+
+
+
+
+                JsonArrayImplementsList
+              
+
+
+
+
+                date
+              
+
+
+
+
+                duplicate_keys_in_map
+              
+
+
+
+
+                gh-pages
+              
+
+
+
+
+                master
+              
+
+
+
+
+                revert-669-inet-address-test-failure
+              
+
+
+RESULT: SOURCE CODE!
+
+Nothing to show
+RESULT: NATURAL LANGUAGE~
+
+
+
+
+
+                gson-parent-2.5
+              
+
+
+
+
+                gson-parent-2.4
+              
+
+
+
+
+                gson-2.4
+              
+
+
+
+
+                gson-2.3.1
+              
+
+
+
+
+                gson-2.3
+              
+
+
+
+
+                gson-2.2.4
+              
+
+
+
+
+                gson-2.2.3
+              
+
+
+
+
+                gson-2.2.2
+              
+
+
+
+
+                gson-2.2.1
+              
+
+
+
+
+                gson-2.2
+              
+
+
+
+
+                gson-2.1
+              
+
+
+
+
+                gson-2.0
+              
+
+
+
+
+                gson-1.7.2
+              
+
+
+
+
+                gson-1.7.1
+              
+
+
+
+
+                1.7
+              
+
+
+
+
+                1.6
+              
+
+
+
+
+                1.5
+              
+
+
+
+
+                1.4-beta
+              
+
+
+
+
+                1.3
+              
+
+
+
+
+                1.3beta3
+              
+
+
+
+
+                1.3beta2
+              
+
+
+
+
+                1.3-beta
+              
+
+
+
+
+                1.2.3
+              
+
+
+
+
+                1.2.2
+              
+
+
+
+
+                1.2.1
+              
+
+
+
+
+                1.2
+              
+
+
+
+
+                1.1.1
+              
+
+
+
+
+                1.1
+              
+
+
+
+
+                1.0
+              
+
+
+RESULT: SOURCE CODE!
+
+Nothing to show
+RESULT: NATURAL LANGUAGE~
+
+
+
+      Find file
+    
+
+RESULT: NATURAL LANGUAGE~
+
+
+gson/UserGuide.md
+
+RESULT: SOURCE CODE!
+
+
+
+mbrukman
+Added language annotations to code blocks.
+
+RESULT: NATURAL LANGUAGE~
+
+
+
+2
+         contributors
+      
+ 
+ 
+
+RESULT: SOURCE CODE!
+
+
+Raw
+Blame
+History
+
+RESULT: NATURAL LANGUAGE~
+
+
+      666 lines (487 sloc)
+      
+    29.7 KB
+  
+RESULT: SOURCE CODE!
+
+Gson is a Java library that can be used to convert Java Objects into their JSON representation. It can also be used to convert a JSON string to an equivalent Java object.
+RESULT: NATURAL LANGUAGE~
+
+Gson can work with arbitrary Java objects including pre-existing objects that you do not have source code of.
+RESULT: NATURAL LANGUAGE~
+
+Here are some metrics that we obtained on a desktop (dual opteron, 8GB RAM, 64-bit Ubuntu) running lots of other things along-with the tests. You can rerun these tests by using the class PerformanceTest.
+RESULT: NATURAL LANGUAGE~
+
+Note: Delete the disabled_ prefix to run these tests. We use this prefix to prevent running these tests every time we run JUnit tests.
+RESULT: NATURAL LANGUAGE~
+
+Gson was originally created for use inside Google where it is currently used in a number of projects. It is now used by a number of public projects and companies. See details here.
+RESULT: NATURAL LANGUAGE~
+
+The primary class to use is Gson which you can just create by calling new Gson(). There is also a class GsonBuilder available that can be used to create a Gson instance with various settings like version control and so on.
+RESULT: NATURAL LANGUAGE~
+
+The Gson instance does not maintain any state while invoking Json operations. So, you are free to reuse the same object for multiple Json serialization and deserialization operations.
+RESULT: NATURAL LANGUAGE~
+
+To use Gson with Maven2/3, you can use the Gson version available in Maven Central by adding the following dependency:
+RESULT: NATURAL LANGUAGE~
+
+
+RESULT: NATURAL LANGUAGE~
+
+<dependencies>
+    <!--  Gson: Java to Json conversion -->
+    <dependency>
+      <groupId>com.google.code.gson</groupId>
+      <artifactId>gson</artifactId>
+      <version>2.5</version>
+      <scope>compile</scope>
+    </dependency>
+</dependencies>
+RESULT: SOURCE CODE!
+
+That is it, now your maven project is Gson enabled. 
+RESULT: NATURAL LANGUAGE~
+
+
+RESULT: NATURAL LANGUAGE~
+
+// Serialization
+Gson gson = new Gson();
+gson.toJson(1);            // ==> 1
+gson.toJson("abcd");       // ==> "abcd"
+gson.toJson(new Long(10)); // ==> 10
+int[] values = { 1 };
+gson.toJson(values);       // ==> [1]
+
+// Deserialization
+int one = gson.fromJson("1", int.class);
+Integer one = gson.fromJson("1", Integer.class);
+Long one = gson.fromJson("1", Long.class);
+Boolean false = gson.fromJson("false", Boolean.class);
+String str = gson.fromJson("\"abc\"", String.class);
+String anotherStr = gson.fromJson("[\"abc\"]", String.class);

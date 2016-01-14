@@ -68,7 +68,7 @@ def visit(url):
 	cleaner.javasript = True
 	cleaner.style = True
 	cleaner.kill_tags = ELEMENTS_TO_IGNORE
-	
+
 	# soup = BeautifulSoup(page, "lxml")
 	# for link in soup.findAll('a'):
 	# 	if link.has_attr('href'):
@@ -93,10 +93,10 @@ def extract(page, url):
 		text = block.text
 		if not block.find(BLOCK_ELEMENTS)==None:
 			text = ""
-			for text in block:
-				if type(text)==NavigableString:
-					text += text
-		if not text.strip=="":
+			for next_text in block:
+				if type(next_text)==NavigableString:
+					text += next_text
+		if not text.isspace():
 			results_file.write(text.encode("utf-8")+"\n")
 			if is_source_code(text):
 				results_file.write("RESULT: SOURCE CODE!\n")
