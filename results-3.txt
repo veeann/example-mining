@@ -1,0 +1,885 @@
+visiting: http://x-stream.github.io/converter-tutorial.html
+
+
+
+
+    
+        XStream - Converter Tutorial
+        
+        
+    
+  
+
+        
+        
+        
+
+    
+    
+
+        
+
+
+
+RESULT: SOURCE CODE!
+
+This is the most basic converter... let's start with a simple Person:
+RESULT: NATURAL LANGUAGE~
+
+
+RESULT: NATURAL LANGUAGE~
+
+package com.thoughtworks.xstream.examples;
+
+public class Person {
+
+        private String name;
+
+        public String getName() {
+                return name;
+        }
+
+        public void setName(String name) {
+                this.name = name;
+        }
+
+}
+RESULT: SOURCE CODE!
+
+So let's create a person and convert it to
+XML...
+RESULT: NATURAL LANGUAGE~
+
+
+RESULT: NATURAL LANGUAGE~
+
+package com.thoughtworks.xstream.examples;
+
+import com.thoughtworks.xstream.XStream;
+import com.thoughtworks.xstream.io.xml.DomDriver;
+
+public class PersonTest {
+
+        public static void main(String[] args) {
+                Person person = new Person();
+                person.setName("Guilherme");
+
+                XStream xStream = new XStream(new DomDriver());
+                System.out.println(xStream.toXML(person));
+        }
+
+}
+RESULT: SOURCE CODE!
+
+This results in a really ugly XML code which contains the full
+class name (including
+package)...
+RESULT: NATURAL LANGUAGE~
+
+
+RESULT: NATURAL LANGUAGE~
+
+<com.thoughtworks.xstream.examples.Person>
+  <name>Guilherme</name>
+</com.thoughtworks.xstream.examples.Person>
+RESULT: SOURCE CODE!
+
+So we make use
+of an 'alias' to change this full class name to something more 'human', for
+example
+'person'.
+RESULT: NATURAL LANGUAGE~
+
+
+RESULT: NATURAL LANGUAGE~
+
+XStream xStream = new XStream(new DomDriver());
+xStream.alias("person", Person.class);
+System.out.println(xStream.toXML(person));
+RESULT: SOURCE CODE!
+
+And the outcome is
+much easier to read (and
+smaller):
+RESULT: NATURAL LANGUAGE~
+
+
+RESULT: NATURAL LANGUAGE~
+
+<person>
+  <name>Guilherme</name>
+</person>
+RESULT: SOURCE CODE!
+
+Now that we have configured a simple class to
+play with, let's see what XStream converters can do for us...
+RESULT: NATURAL LANGUAGE~
+
+Let's create a simple converter capable
+of:
+RESULT: NATURAL LANGUAGE~
+
+We begin creating the PersonConverter class and implementing the
+Converter
+interface:
+RESULT: NATURAL LANGUAGE~
+
+
+RESULT: NATURAL LANGUAGE~
+
+package com.thoughtworks.xstream.examples;
+
+import com.thoughtworks.xstream.converters.Converter;
+import com.thoughtworks.xstream.converters.MarshallingContext;
+import com.thoughtworks.xstream.converters.UnmarshallingContext;
+import com.thoughtworks.xstream.io.HierarchicalStreamReader;
+import com.thoughtworks.xstream.io.HierarchicalStreamWriter;
+
+public class PersonConverter implements Converter {
+
+        public boolean canConvert(Class clazz) {
+                return false;
+        }
+
+        public void marshal(Object value, HierarchicalStreamWriter writer,
+                        MarshallingContext context) {
+        }
+
+        public Object unmarshal(HierarchicalStreamReader reader,
+                        UnmarshallingContext context) {
+                return null;
+        }
+
+}
+RESULT: SOURCE CODE!
+
+Now we tell whoever calls us that we can handle only Person's
+(and nothing else, including those classes which extends
+Person).
+RESULT: NATURAL LANGUAGE~
+
+
+RESULT: NATURAL LANGUAGE~
+
+public boolean canConvert(Class clazz) {
+        return clazz.equals(Person.class);
+}
+RESULT: SOURCE CODE!
+
+The second step is usually quite clean, unless you are dealing
+with generic converters.
+RESULT: NATURAL LANGUAGE~
+
+The marshal method is responsible for
+translating an object to XML. It receives three
+arguments:
+RESULT: NATURAL LANGUAGE~
+
+We start casting the object to
+person:
+RESULT: NATURAL LANGUAGE~
+
+
+RESULT: NATURAL LANGUAGE~
+
+Person person = (Person) value;
+RESULT: SOURCE CODE!
+
+Now
+we can output the data... let's start creating a node called fullname
+and adding the person's name to
+it:
+RESULT: NATURAL LANGUAGE~
+
+
+RESULT: NATURAL LANGUAGE~
+
+writer.startNode("fullname");
+writer.setValue(person.getName());
+writer.endNode();
+RESULT: SOURCE CODE!
+
+Quite simple
+huh?
+RESULT: NATURAL LANGUAGE~
+
+
+RESULT: NATURAL LANGUAGE~
+
+public void marshal(Object value, HierarchicalStreamWriter writer,
+                MarshallingContext context) {
+        Person person = (Person) value;
+        writer.startNode("fullname");
+        writer.setValue(person.getName());
+        writer.endNode();
+}
+RESULT: SOURCE CODE!
+
+We could have called start/end node as many times as we would
+like (but remember to close everything you open)... and conversion usually
+takes place when calling the setValue method.
+RESULT: NATURAL LANGUAGE~
+
+And now let's go to
+the unmarshal. We use the moveDown and moveUp methods to move
+in the tree hierarchy, so we can simply moveDown, read the value and
+moveUp.
+RESULT: NATURAL LANGUAGE~
+
+
+RESULT: NATURAL LANGUAGE~
+
+                Person person = new Person();
+                reader.moveDown();
+                person.setName(reader.getValue());
+                reader.moveUp();
+RESULT: SOURCE CODE!
+
+Which gives us the following
+converter:
+RESULT: NATURAL LANGUAGE~
+
+
+RESULT: NATURAL LANGUAGE~
+
+package com.thoughtworks.xstream.examples;
+
+import com.thoughtworks.xstream.converters.Converter;
+import com.thoughtworks.xstream.converters.MarshallingContext;
+import com.thoughtworks.xstream.converters.UnmarshallingContext;
+import com.thoughtworks.xstream.io.HierarchicalStreamReader;
+import com.thoughtworks.xstream.io.HierarchicalStreamWriter;
+
+public class PersonConverter implements Converter {
+
+        public boolean canConvert(Class clazz) {
+                return clazz.equals(Person.class);
+        }
+
+        public void marshal(Object value, HierarchicalStreamWriter writer,
+                        MarshallingContext context) {
+                Person person = (Person) value;
+                writer.startNode("fullname");
+                writer.setValue(person.getName());
+                writer.endNode();
+        }
+
+        public Object unmarshal(HierarchicalStreamReader reader,
+                        UnmarshallingContext context) {
+                Person person = new Person();
+                reader.moveDown();
+                person.setName(reader.getValue());
+                reader.moveUp();
+                return person;
+        }
+
+}
+RESULT: SOURCE CODE!
+
+Now let's register our converter and see how our application
+main method looks
+like:
+RESULT: NATURAL LANGUAGE~
+
+
+RESULT: NATURAL LANGUAGE~
+
+package com.thoughtworks.xstream.examples;
+
+import com.thoughtworks.xstream.XStream;
+import com.thoughtworks.xstream.io.xml.DomDriver;
+
+public class PersonTest {
+
+        public static void main(String[] args) {
+                Person person = new Person();
+                person.setName("Guilherme");
+
+                XStream xStream = new XStream(new DomDriver());
+                xStream.registerConverter(new PersonConverter());
+                xStream.alias("person", Person.class);
+                System.out.println(xStream.toXML(person));
+        }
+
+}
+RESULT: SOURCE CODE!
+
+Did you notice how we registered our converter? It's a simple
+call to
+registerConverter:
+RESULT: NATURAL LANGUAGE~
+
+
+RESULT: NATURAL LANGUAGE~
+
+xStream.registerConverter(new PersonConverter());
+RESULT: SOURCE CODE!
+
+The
+final result
+is:
+RESULT: NATURAL LANGUAGE~
+
+
+RESULT: NATURAL LANGUAGE~
+
+<person>
+  <fullname>Guilherme</fullname>
+</person>
+RESULT: SOURCE CODE!
+
+So you might say... that only changed my tree, I
+want to convert data!
+RESULT: NATURAL LANGUAGE~
+
+Try using an attribute called fullname in
+the person tag instead of creating a new child node.
+RESULT: NATURAL LANGUAGE~
+
+Let's enhance the Person with a String representation, that contains all necessary 
+text to recreate the instance:
+RESULT: NATURAL LANGUAGE~
+
+
+RESULT: NATURAL LANGUAGE~
+
+package com.thoughtworks.xstream.examples;
+
+public class Person {
+
+        private String name;
+
+        public String getName() {
+                return name;
+        }
+
+        public void setName(String name) {
+                this.name = name;
+        }
+
+        public String toString() {
+                return getName();
+        }
+}
+RESULT: SOURCE CODE!
+
+In this case we can simplify our Converter to
+RESULT: NATURAL LANGUAGE~
+
+
+RESULT: NATURAL LANGUAGE~
+
+package com.thoughtworks.xstream.examples;
+
+import com.thoughtworks.xstream.converters.basic.AbstractSingleValueConverter;
+
+public class PersonConverter extends AbstractSingleValueConverter {
+
+        public boolean canConvert(Class clazz) {
+                return clazz.equals(Person.class);
+        }
+
+        public Object fromString(String str) {
+                Person person = new Person();
+                person.setName(string);
+                return person;
+        }
+
+}
+RESULT: SOURCE CODE!
+
+But even nicer, our XML is also simplified (using the alias for the 
+Person class). Since the String representation is complete, a nested element is not
+necessary anymore:
+RESULT: NATURAL LANGUAGE~
+
+
+RESULT: NATURAL LANGUAGE~
+
+<person>Guilherme</person>
+RESULT: SOURCE CODE!
+
+Note, that in implementation of a SingleValueConverter is required for
+attributes, since these objects have to be represented by a single string only.
+RESULT: NATURAL LANGUAGE~
+
+Now that we know how the Converter interface works, let's create a
+simple calendar converter which uses the locale to convert the
+information.
+RESULT: NATURAL LANGUAGE~
+
+Our converter will receive the Locale in its constructor
+and we will keep a reference to it in a member
+variable:
+RESULT: NATURAL LANGUAGE~
+
+
+RESULT: NATURAL LANGUAGE~
+
+package com.thoughtworks.xstream.examples;
+
+import java.util.Locale;
+
+import com.thoughtworks.xstream.converters.Converter;
+import com.thoughtworks.xstream.converters.MarshallingContext;
+import com.thoughtworks.xstream.converters.UnmarshallingContext;
+import com.thoughtworks.xstream.io.HierarchicalStreamReader;
+import com.thoughtworks.xstream.io.HierarchicalStreamWriter;
+
+public class DateConverter implements Converter {
+
+        private Locale locale;
+
+        public DateConverter(Locale locale) {
+                super();
+                this.locale = locale;
+        }
+
+        public boolean canConvert(Class clazz) {
+                return false;
+        }
+
+        public void marshal(Object value, HierarchicalStreamWriter writer,
+                        MarshallingContext context) {
+        }
+
+        public Object unmarshal(HierarchicalStreamReader reader,
+                        UnmarshallingContext context) {
+                return null;
+        }
+
+}
+RESULT: SOURCE CODE!
+
+Now let's convert anything which extends Calendar:
+means if instances of class clazz can be assigned to the
+Calendar class, they extends the abstract class
+Calendar:
+RESULT: NATURAL LANGUAGE~
+
+
+RESULT: NATURAL LANGUAGE~
+
+public boolean canConvert(Class clazz) {
+        return Calendar.class.isAssignableFrom(clazz);
+}
+RESULT: SOURCE CODE!
+
+Let's go for converting a Calendar in a localized
+string... we first cast the object to Calendar, extract its Date
+and then use a DateFormat factory method to get a date converter to our
+localized
+string.
+RESULT: NATURAL LANGUAGE~
+
+
+RESULT: NATURAL LANGUAGE~
+
+public void marshal(Object value, HierarchicalStreamWriter writer,
+                MarshallingContext context) {
+
+        Calendar calendar = (Calendar) value;
+
+        // grabs the date
+        Date date = calendar.getTime();
+
+        // grabs the formatter
+        DateFormat formatter = DateFormat.getDateInstance(DateFormat.FULL,
+                        this.locale);
+
+        // formats and sets the value
+        writer.setValue(formatter.format(date));
+
+}
+RESULT: SOURCE CODE!
+
+And the other way around... in order to unmarshall, we create
+a GregorianCalendar, retrieves the localized DateFormat
+instance, parses the string into a Date and puts this date in the
+original
+GregorianCalendar:
+RESULT: NATURAL LANGUAGE~
+
+
+RESULT: NATURAL LANGUAGE~
+
+public Object unmarshal(HierarchicalStreamReader reader,
+                UnmarshallingContext context) {
+
+        // creates the calendar
+        GregorianCalendar calendar = new GregorianCalendar();
+
+        // grabs the converter
+        DateFormat formatter = DateFormat.getDateInstance(DateFormat.FULL,
+                        this.locale);
+
+        // parses the string and sets the time
+        try {
+                calendar.setTime(formatter.parse(reader.getValue()));
+        } catch (ParseException e) {
+                throw new ConversionException(e.getMessage(), e);
+        }
+
+        // returns the new object
+        return calendar;
+
+}
+RESULT: SOURCE CODE!
+
+Note 1: remember that some DateFormat implementations
+are not thread-safe, therefore don't put your formatter as a member of your
+converter.
+RESULT: NATURAL LANGUAGE~
+
+Note 2: this implementation will convert other types
+of Calendar's to GregorianCalendar after save/load. If this is not what you
+want, change your canConvert method to return true only if
+class equals GregorianCalendar.
+RESULT: NATURAL LANGUAGE~
+
+So we get the following
+converter:
+RESULT: NATURAL LANGUAGE~
+
+
+RESULT: NATURAL LANGUAGE~
+
+package com.thoughtworks.xstream.examples;
+
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.GregorianCalendar;
+import java.util.Locale;
+
+import com.thoughtworks.xstream.converters.ConversionException;
+import com.thoughtworks.xstream.converters.Converter;
+import com.thoughtworks.xstream.converters.MarshallingContext;
+import com.thoughtworks.xstream.converters.UnmarshallingContext;
+import com.thoughtworks.xstream.io.HierarchicalStreamReader;
+import com.thoughtworks.xstream.io.HierarchicalStreamWriter;
+
+public class DateConverter implements Converter {
+
+        private Locale locale;
+
+        public DateConverter(Locale locale) {
+                super();
+                this.locale = locale;
+        }
+
+        public boolean canConvert(Class clazz) {
+                return Calendar.class.isAssignableFrom(clazz);
+        }
+
+        public void marshal(Object value, HierarchicalStreamWriter writer,
+                        MarshallingContext context) {
+                Calendar calendar = (Calendar) value;
+                Date date = calendar.getTime();
+                DateFormat formatter = DateFormat.getDateInstance(DateFormat.FULL,
+                                this.locale);
+                writer.setValue(formatter.format(date));
+        }
+
+        public Object unmarshal(HierarchicalStreamReader reader,
+                        UnmarshallingContext context) {
+                GregorianCalendar calendar = new GregorianCalendar();
+                DateFormat formatter = DateFormat.getDateInstance(DateFormat.FULL,
+                                this.locale);
+                try {
+                        calendar.setTime(formatter.parse(reader.getValue()));
+                } catch (ParseException e) {
+                        throw new ConversionException(e.getMessage(), e);
+                }
+                return calendar;
+        }
+
+}
+RESULT: SOURCE CODE!
+
+And let's try it out. We create a DateTest class with a
+main method:
+RESULT: NATURAL LANGUAGE~
+
+Well, we already know how to do all those steps... so let's go:
+RESULT: NATURAL LANGUAGE~
+
+
+RESULT: NATURAL LANGUAGE~
+
+package com.thoughtworks.xstream.examples;
+
+import java.util.Calendar;
+import java.util.GregorianCalendar;
+import java.util.Locale;
+
+import com.thoughtworks.xstream.XStream;
+import com.thoughtworks.xstream.io.xml.DomDriver;
+
+public class DateTest {
+
+        public static void main(String[] args) {
+
+                // grabs the current date from the virtual machine
+                Calendar calendar = new GregorianCalendar();
+
+                // creates the xstream
+                XStream xStream = new XStream(new DomDriver());
+
+                // brazilian portuguese locale
+                xStream.registerConverter(new DateConverter(new Locale("pt", "br")));
+
+                // prints the result
+                System.out.println(xStream.toXML(calendar));
+
+        }
+
+}
+RESULT: SOURCE CODE!
+
+The result? Well... it depends, but it will be something
+like:
+RESULT: NATURAL LANGUAGE~
+
+
+RESULT: NATURAL LANGUAGE~
+
+<gregorian-calendar>Sexta-feira, 10 de Fevereiro de 2006</gregorian-calendar>
+RESULT: SOURCE CODE!
+
+Note:
+we did not put any alias as gregorian-calendar is the default alias for
+GregorianCalendar.
+RESULT: NATURAL LANGUAGE~
+
+And now let's try to unmarshal the result
+shown
+above:
+RESULT: NATURAL LANGUAGE~
+
+
+RESULT: NATURAL LANGUAGE~
+
+// loads the calendar from the string
+Calendar loaded = (Calendar) xStream
+                .fromXML("<gregorian-calendar>Sexta-feira, 10 de Fevereiro de 2006</gregorian-calendar>");
+RESULT: SOURCE CODE!
+
+And
+print it using the system locale, short date
+format:
+RESULT: NATURAL LANGUAGE~
+
+
+RESULT: NATURAL LANGUAGE~
+
+// prints using the system defined locale
+System.out.println(DateFormat.getDateInstance(DateFormat.SHORT).format(
+                loaded.getTime()));
+RESULT: SOURCE CODE!
+
+The result might be
+something like (if your system locale is American
+English):
+RESULT: NATURAL LANGUAGE~
+
+
+RESULT: NATURAL LANGUAGE~
+
+2/10/06
+RESULT: NATURAL LANGUAGE~
+
+We already defined some classes, so let them glue together:
+RESULT: NATURAL LANGUAGE~
+
+
+RESULT: NATURAL LANGUAGE~
+
+package com.thoughtworks.xstream.examples;
+
+public class Birthday {
+
+        private Person person;
+        private Calendar date;
+        private char gender;
+
+        public Person getPerson() {
+                return person;
+        }
+
+        public void setPerson(Person person) {
+                this.person = person;
+        }
+
+        public Calendar getDate() {
+                return date;
+        }
+
+        public void setDate(Calendar date) {
+                this.date = date;
+        }
+        
+        public char getGender() {
+                return gender;
+        }
+
+        public void setGenderMale() {
+                this.gender = 'm';
+        }
+
+        public void setGenderFemale() {
+                this.gender = 'f';
+        }
+
+}
+RESULT: SOURCE CODE!
+
+While XStream is capable of converting this class without any problem, we write our own custom converter
+just for demonstration. This time we want to reuse our already written converters for the Person and the Calendar and add an
+own attribute for the gender. The canConvert method is plain simple. We convert no derived classes this time,
+since they might have additional fields. But we reuse the converters registered in XStream for our member fields and handle
+null values:
+
+RESULT: NATURAL LANGUAGE~
+
+
+RESULT: NATURAL LANGUAGE~
+
+package com.thoughtworks.xstream.examples;
+
+import java.util.Calendar;
+
+import com.thoughtworks.xstream.converters.ConversionException;
+import com.thoughtworks.xstream.converters.Converter;
+import com.thoughtworks.xstream.converters.MarshallingContext;
+import com.thoughtworks.xstream.converters.UnmarshallingContext;
+import com.thoughtworks.xstream.io.HierarchicalStreamReader;
+import com.thoughtworks.xstream.io.HierarchicalStreamWriter;
+
+public class BirthdayConverter implements Converter {
+
+        public boolean canConvert(Class clazz) {
+                return Birthday.class == clazz;
+        }
+
+        public void marshal(Object value, HierarchicalStreamWriter writer,
+                        MarshallingContext context) {
+                Birthday birthday = (Birthday)value;
+                if (birthday.getGender() != '\0') {
+                        writer.addAttribute("gender", Character.toString(birthday.getGender()));
+                }
+                if (birthday.getPerson() != null) {
+                        writer.startNode("person");
+                        context.convertAnother(birthday.getPerson());
+                        writer.endNode();
+                }
+                if (birthday.getDate() != null) {
+                        writer.startNode("birth");
+                        context.convertAnother(birthday.getDate());
+                        writer.endNode();
+                }
+        }
+
+        public Object unmarshal(HierarchicalStreamReader reader,
+                        UnmarshallingContext context) {
+                Birthday birthday = new Birthday();
+                String gender = reader.getAttribute("gender");
+                if (gender != null) {
+                        if (gender.length() > 0) {              
+                                if (gender.char(0) == 'f') {
+                                        birthday.setGenderFemale();
+                                } else if (gender.char(0) == 'm') {
+                                        birthday.setFemale();
+                                } else {
+                                        throw new ConversionException("Invalid gender value: " + gender);
+                                }
+                        } else {
+                                throw new ConversionException("Empty string is invalid gender value");
+                        }
+                }
+                while (reader.hasMoreChildren()) {
+                        reader.moveDown();
+                        if ("person".equals(reader.getNodeName())) {
+                                Person person = (Person)context.convertAnother(birthday, Person.class);
+                                birthday.setPerson(person);
+                        } else if ("birth".equals(reader.getNodeName())) {
+                                Calendar date = (Calendar)context.convertAnother(birthday, Calendar.class);
+                                birthday.setDate(date);
+                        }
+                        reader.moveUp();
+                }
+                return birthday;
+        }
+
+}
+RESULT: SOURCE CODE!
+
+The unmarshal method ensures the valid value for the gender by throwing a
+ConversionException for invalid entries.
+RESULT: NATURAL LANGUAGE~
+
+Note, that attributes will always have to be written and read first. You work on a stream and
+accessing the value of a tag or its members will close the surrounding tag (that is still active when the method is
+called).
+RESULT: NATURAL LANGUAGE~
+
+If the implementation of Birthday ensures, that none of its fields
+could hold a null value and gender contains a valid value, then we could drop the 
+null condition in the marshal method and in unmarshal
+we could omit the loop as well as the comparison of the tag names:
+RESULT: NATURAL LANGUAGE~
+
+
+RESULT: NATURAL LANGUAGE~
+
+package com.thoughtworks.xstream.examples;
+
+import java.util.Calendar;
+
+import com.thoughtworks.xstream.converters.Converter;
+import com.thoughtworks.xstream.converters.MarshallingContext;
+import com.thoughtworks.xstream.converters.UnmarshallingContext;
+import com.thoughtworks.xstream.io.HierarchicalStreamReader;
+import com.thoughtworks.xstream.io.HierarchicalStreamWriter;
+
+public class BirthdayConverter implements Converter {
+
+        public boolean canConvert(Class clazz) {
+                return Birthday.class == clazz;
+        }
+
+        public void marshal(Object value, HierarchicalStreamWriter writer,
+                        MarshallingContext context) {
+                Birthday birthday = (Birthday)value;
+                writer.addAttribute("gender", Character.toString(birthday.getGender()));
+                writer.startNode("person");
+                context.convertAnother(birthday.getPerson());
+                writer.endNode();
+                writer.startNode("birth");
+                context.convertAnother(birthday.getDate());
+                writer.endNode();
+        }
+
+        public Object unmarshal(HierarchicalStreamReader reader,
+                        UnmarshallingContext context) {
+                Birthday birthday = new Birthday();
+                if (reader.getAttribute("gender").charAt(0) == 'm') {
+                        birthday.setGenderMale();
+                } else {
+                        birthday.setGenderFemale();
+                }
+                reader.moveDown();
+                Person person = (Person)context.convertAnother(birthday, Person.class);
+                birthday.setPerson(person);
+                reader.moveUp();
+                reader.moveDown();
+                Calendar date = (Calendar)context.convertAnother(birthday, Calendar.class);
+                birthday.setDate(date);
+                reader.moveUp();
+                return birthday;
+        }
+
+}
+RESULT: SOURCE CODE!
+

@@ -1,0 +1,498 @@
+visiting: http://x-stream.github.io/alias-tutorial.html
+
+
+
+
+    
+        XStream - Alias Tutorial
+        
+        
+    
+  
+
+        
+        
+        
+
+    
+    
+
+        
+
+
+
+RESULT: SOURCE CODE!
+
+Suppose that our client has defined a base XML file that we should make XStream read/write:
+RESULT: NATURAL LANGUAGE~
+
+<blog author="Guilherme Silveira">
+  <entry>
+    <title>first</title>
+    <description>My first blog entry.</description>
+  </entry>
+  <entry>
+    <title>tutorial</title>
+    <description>
+        Today we have developed a nice alias tutorial. Tell your friends! NOW!
+    </description>
+  </entry>
+</blog>
+RESULT: NATURAL LANGUAGE~
+
+Based on the XML file above we shall create some model classes and configure XStream to write/read from this format.
+RESULT: NATURAL LANGUAGE~
+
+First things first, the classes which shall represent our xml files are shown next, beginning with a simple Blog:
+RESULT: NATURAL LANGUAGE~
+
+
+RESULT: NATURAL LANGUAGE~
+
+package com.thoughtworks.xstream;
+
+public class Blog {
+        private Author writer;
+        private List entries = new ArrayList();
+
+        public Blog(Author writer) {
+                this.writer = writer;
+        }
+
+        public void add(Entry entry) {
+                entries.add(entry);
+        }
+
+        public List getContent() {
+                return entries;
+        }
+}
+RESULT: SOURCE CODE!
+
+A basic author with name:
+RESULT: NATURAL LANGUAGE~
+
+
+RESULT: NATURAL LANGUAGE~
+
+package com.thoughtworks.xstream;
+
+public class Author {
+        private String name;
+        public Author(String name) {
+                this.name = name;
+        }
+        public String getName() {
+                return name;
+        }
+}
+RESULT: SOURCE CODE!
+
+A blog entry contains a title and description:
+RESULT: NATURAL LANGUAGE~
+
+
+RESULT: NATURAL LANGUAGE~
+
+package com.thoughtworks.xstream;
+
+public class Entry {
+        private String title, description;
+        public Entry(String title, String description) {
+                this.title = title;
+                this.description = description;
+        }
+}
+RESULT: SOURCE CODE!
+
+Although we did not create many getters/setters its up to you to create those you wish or those which make sense.
+RESULT: NATURAL LANGUAGE~
+
+We can easily instantiate a new blog and use it with xstream:
+RESULT: NATURAL LANGUAGE~
+
+
+RESULT: NATURAL LANGUAGE~
+
+public static void main(String[] args) {
+
+        Blog teamBlog = new Blog(new Author("Guilherme Silveira"));
+        teamBlog.add(new Entry("first","My first blog entry."));
+        teamBlog.add(new Entry("tutorial",
+                "Today we have developed a nice alias tutorial. Tell your friends! NOW!"));
+
+        XStream xstream = new XStream();
+        System.out.println(xstream.toXML(teamBlog));
+
+}
+RESULT: SOURCE CODE!
+
+And the resulting XML is not so nice as we would want it to be:
+RESULT: NATURAL LANGUAGE~
+
+
+RESULT: NATURAL LANGUAGE~
+
+<com.thoughtworks.xstream.Blog>
+  <writer>
+    <name>Guilherme Silveira</name>
+  </writer>
+  <entries>
+    <com.thoughtworks.xstream.Entry>
+      <title>first</title>
+      <description>My first blog entry.</description>
+    </com.thoughtworks.xstream.Entry>
+    <com.thoughtworks.xstream.Entry>
+      <title>tutorial</title>
+      <description>
+        Today we have developed a nice alias tutorial. Tell your friends! NOW!
+      </description>
+    </com.thoughtworks.xstream.Entry>
+  </entries>
+</com.thoughtworks.xstream.Blog>
+RESULT: SOURCE CODE!
+
+The first thing we shall change is how XStream refers to the com.thoughtworks.xstream.Blog class.
+We shall name it simply blog: let's create an alias called blog to the desired class:
+RESULT: NATURAL LANGUAGE~
+
+
+RESULT: NATURAL LANGUAGE~
+
+xstream.alias("blog", Blog.class);
+RESULT: SOURCE CODE!
+
+Using the same idea, we can alias the 'Entry' class to 'entry':
+RESULT: NATURAL LANGUAGE~
+
+
+RESULT: NATURAL LANGUAGE~
+
+xstream.alias("entry", Entry.class);
+RESULT: SOURCE CODE!
+
+The result now becomes:
+RESULT: NATURAL LANGUAGE~
+
+
+RESULT: NATURAL LANGUAGE~
+
+<blog>
+  <writer>
+    <name>Guilherme Silveira</name>
+  </writer>
+  <entries>
+    <entry>
+      <title>first</title>
+      <description>My first blog entry.</description>
+    </entry>
+    <entry>
+      <title>tutorial</title>
+      <description>
+        Today we have developed a nice alias tutorial. Tell your friends! NOW!
+      </description>
+    </entry>
+  </entries>
+</blog>
+RESULT: NATURAL LANGUAGE~
+
+Next we will change the name of the writer tag, but this time we have to use a field alias:
+RESULT: NATURAL LANGUAGE~
+
+
+RESULT: NATURAL LANGUAGE~
+
+xstream.aliasField("author", Blog.class, "writer");
+RESULT: SOURCE CODE!
+
+The result now becomes:
+RESULT: NATURAL LANGUAGE~
+
+
+RESULT: NATURAL LANGUAGE~
+
+<blog>
+  <author>
+    <name>Guilherme Silveira</name>
+  </author>
+  <entries>
+    <entry>
+      <title>first</title>
+      <description>My first blog entry.</description>
+    </entry>
+    <entry>
+      <title>tutorial</title>
+      <description>
+        Today we have developed a nice alias tutorial. Tell your friends! NOW!
+      </description>
+    </entry>
+  </entries>
+</blog>
+RESULT: NATURAL LANGUAGE~
+
+Now let's implement what was called an implicit collection: whenever you have a collection which doesn't need
+to display it's root tag, you can map it as an implicit collection.
+RESULT: NATURAL LANGUAGE~
+
+In our example, we do not want to display the entries tag, but simply show the entry tags one after
+another.
+RESULT: NATURAL LANGUAGE~
+
+A simple call to the addImplicitCollection method shall configure XStream and let it know that we do not want to
+write the entries tag as described above:
+RESULT: NATURAL LANGUAGE~
+
+
+RESULT: NATURAL LANGUAGE~
+
+package com.thoughtworks.xstream;
+
+import java.util.ArrayList;
+import java.util.List;
+
+public class Test {
+
+        public static void main(String[] args) {
+
+                Blog teamBlog = new Blog(new Author("Guilherme Silveira"));
+                teamBlog.add(new Entry("first","My first blog entry."));
+                teamBlog.add(new Entry("tutorial",
+                        "Today we have developed a nice alias tutorial. Tell your friends! NOW!"));
+
+                XStream xstream = new XStream();
+                xstream.alias("blog", Blog.class);
+                xstream.alias("entry", Entry.class);
+
+                xstream.addImplicitCollection(Blog.class, "entries");
+
+                System.out.println(xstream.toXML(teamBlog));
+
+        }
+}
+RESULT: SOURCE CODE!
+
+Pay attention to the addImplicitCollection method call: it describes which class and which member variable
+shall assume the behaviour we described.
+RESULT: NATURAL LANGUAGE~
+
+The result is almost what we wanted:
+RESULT: NATURAL LANGUAGE~
+
+
+RESULT: NATURAL LANGUAGE~
+
+<blog>
+  <author>
+    <name>Guilherme Silveira</name>
+  </author>
+  <entry>
+    <title>first</title>
+    <description>My first blog entry.</description>
+  </entry>
+  <entry>
+    <title>tutorial</title>
+    <description>
+        Today we have developed a nice alias tutorial. Tell your friends! NOW!
+    </description>
+  </entry>
+</blog>
+RESULT: NATURAL LANGUAGE~
+
+Just as a side note: An array or a map can also be declared as implicit.
+RESULT: NATURAL LANGUAGE~
+
+The next step is to set the writer member variable as an XML attribute. In order to do this, we shall tell
+XStream to alias the writer field of the Blog class as an "author" attribute:
+RESULT: NATURAL LANGUAGE~
+
+
+RESULT: NATURAL LANGUAGE~
+
+                xstream.useAttributeFor(Blog.class, "writer");
+                xstream.aliasField("author", Blog.class, "writer");
+RESULT: SOURCE CODE!
+
+And now it leaves us with one problem: how does XStream converts an Author in a String so it can be written as a
+XML tag attribute?
+RESULT: NATURAL LANGUAGE~
+
+Attributes cannot be written for types that are handled by Converter implementations, we have to use a
+SingleValueConverter and implement our own converter for the Author:
+RESULT: NATURAL LANGUAGE~
+
+
+RESULT: NATURAL LANGUAGE~
+
+class AuthorConverter implements SingleValueConverter {
+}
+RESULT: SOURCE CODE!
+
+The first method to implement tells XStream which types it can deal with:
+RESULT: NATURAL LANGUAGE~
+
+
+RESULT: NATURAL LANGUAGE~
+
+        public boolean canConvert(Class type) {
+                return type.equals(Author.class);
+        }
+RESULT: SOURCE CODE!
+
+The second one is used to extract a String from an Author:
+RESULT: NATURAL LANGUAGE~
+
+
+RESULT: NATURAL LANGUAGE~
+
+        public String toString(Object obj) {
+                return ((Author) obj).getName();
+        }
+RESULT: SOURCE CODE!
+
+And the third one does the opposite job: takes a String and returns an Author:
+RESULT: NATURAL LANGUAGE~
+
+
+RESULT: NATURAL LANGUAGE~
+
+        public Object fromString(String name) {
+                return new Author(name);
+        }
+RESULT: SOURCE CODE!
+
+Finally, the entire single value converter, responsible for converting Strings to Objects (Authors in this case) is:
+RESULT: NATURAL LANGUAGE~
+
+
+RESULT: NATURAL LANGUAGE~
+
+class AuthorConverter implements SingleValueConverter {
+
+        public String toString(Object obj) {
+                return ((Author) obj).getName();
+        }
+
+        public Object fromString(String name) {
+                return new Author(name);
+        }
+
+        public boolean canConvert(Class type) {
+                return type.equals(Author.class);
+        }
+
+}
+RESULT: SOURCE CODE!
+
+And let's register this converter:
+RESULT: NATURAL LANGUAGE~
+
+
+RESULT: NATURAL LANGUAGE~
+
+public class Test {
+
+        public static void main(String[] args) {
+
+                Blog teamBlog = new Blog(new Author("Guilherme Silveira"));
+                teamBlog.add(new Entry("first","My first blog entry."));
+                teamBlog.add(new Entry("tutorial",
+                        "Today we have developed a nice alias tutorial. Tell your friends! NOW!"));
+
+                XStream xstream = new XStream();
+                xstream.alias("blog", Blog.class);
+                xstream.alias("entry", Entry.class);
+
+                xstream.addImplicitCollection(Blog.class, "entries");
+
+                xstream.useAttributeFor(Blog.class, "author");
+                xstream.registerConverter(new AuthorConverter());
+
+                System.out.println(xstream.toXML(teamBlog));
+
+        }
+}
+RESULT: SOURCE CODE!
+
+The result?
+RESULT: NATURAL LANGUAGE~
+
+
+RESULT: NATURAL LANGUAGE~
+
+<blog author="Guilherme Silveira">
+  <entry>
+    <title>first</title>
+    <description>My first blog entry.</description>
+  </entry>
+  <entry>
+    <title>tutorial</title>
+    <description>
+        Today we have developed a nice alias tutorial. Tell your friends! NOW!
+    </description>
+  </entry>
+</blog>
+RESULT: NATURAL LANGUAGE~
+
+You have to be aware, that attribute values normally have to be normalized by the XML parser as
+required by the W3C spec. Leading and trailing whitespaces
+are normally removed as well as sequential ones! Therefore a deserialized string might differ from the value visible in
+the XML representation.
+RESULT: NATURAL LANGUAGE~
+
+In the example above we have so far always used class aliases for the Blog and Entry type. Sometimes it is necessary to
+map existing class types to others simply by changing the package name. Let us go back to the first attempt of our tutorial,
+but this time we alias the package name instead of the individual classes:
+RESULT: NATURAL LANGUAGE~
+
+
+RESULT: NATURAL LANGUAGE~
+
+public static void main(String[] args) {
+
+        Blog teamBlog = new Blog(new Author("Guilherme Silveira"));
+        teamBlog.add(new Entry("first","My first blog entry."));
+        teamBlog.add(new Entry("tutorial",
+                "Today we have developed a nice alias tutorial. Tell your friends! NOW!"));
+
+        XStream xstream = new XStream();
+        xstream.aliasPackage("my.company", "org.thoughtworks");
+        System.out.println(xstream.toXML(teamBlog));
+
+}
+RESULT: SOURCE CODE!
+
+And the resulting XML contains now the classes with the aliased package names:
+RESULT: NATURAL LANGUAGE~
+
+
+RESULT: NATURAL LANGUAGE~
+
+<my.company.xstream.Blog>
+  <author>
+    <name>Guilherme Silveira</name>
+  </author>
+  <entries>
+    <my.company.xstream.Entry>
+      <title>first</title>
+      <description>My first blog entry.</description>
+    </my.company.xstream.Entry>
+    <my.company.xstream.Entry>
+      <title>tutorial</title>
+      <description>
+        Today we have developed a nice alias tutorial. Tell your friends! NOW!
+      </description>
+    </my.company.xstream.Entry>
+  </entries>
+</my.company.xstream.Blog>
+RESULT: SOURCE CODE!
+
+Please recognize that the package name alias works also for sub packages in this example.
+RESULT: NATURAL LANGUAGE~
+
+To recap:
+RESULT: NATURAL LANGUAGE~
+
+Don't forget to read the converter tutorial to see other type of converters that you can create using XStream.
+Or look into the condensed overview how to configure XStream to tweak the output.
+RESULT: NATURAL LANGUAGE~
+

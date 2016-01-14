@@ -6,11 +6,11 @@ This is an experimental version where different methods are being tried.
 The current method it is implementing is noted above.
 It is full of debug text; variable names may not always be descriptive
 '''
+from collections import deque
 from urllib2 import urlopen, URLError
 from urlparse import urljoin, urlparse, urldefrag
 from argparse import ArgumentParser
-from bs4 import BeautifulSoup, UnicodeDammit
-from bs4.element import NavigableString
+from bs4 import BeautifulSoup, NavigableString
 from lxml.html.clean import Cleaner
 import lxml
 import language_check
@@ -19,6 +19,7 @@ import re
 base_url = ""
 visited_pages = []
 pages_to_visit = deque([])
+count = 0
 #nl_tool = language_check.LanguageTool('en-US')
 BLOCK_ELEMENTS = ['article', 'aside', 'blockquote', 'div', 'main', 'p', 'pre', 'section']
 ELEMENTS_TO_IGNORE = ['address', 'canvas', 'dd', 'dl', 'fieldset', 'figcaption', 'figure', 'footer', 'form', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'header', 'hgroup', 'hr', 'li', 'nav', 'noscript', 'ol', 'output', 'table', 'tfoot', 'ul', 'video']
@@ -51,7 +52,8 @@ def parse_arguments():
 	# base_url = url_parts.scheme + '://' + url_parts.netloc + url_path
 	# if url_path.rfind('/') < url_path.rfind('.'):
 	# 	base_url = base_url[:base_url.rfind('/')]
-	# visit(args.url)
+	# visited_pages.append(args.url)
+	# pages_to_visit.append(args.url)
 	file_with_urls = open(args.filename, 'r')
 	for line in file_with_urls.readlines():
 		if line.strip()=="":
@@ -61,8 +63,6 @@ def parse_arguments():
 		visit(pages_to_visit.popleft())
 
 def visit(url):
-	visited_pages.append(url)
-
 	if url.startswith(base_url) == False:
 		return
 
@@ -76,65 +76,58 @@ def visit(url):
 	cleaner.javasript = True
 	cleaner.style = True
 	cleaner.kill_tags = ELEMENTS_TO_IGNORE
+
+	# soup = BeautifulSoup(page, "lxml")
+	# for link in soup.findAll('a'):
+	# 	if link.has_attr('href'):
+	# 		if link.has_attr('class') and 'history' in link['class']:
+	# 			continue
+	# 		next_link = urljoin(url,link['href'])
+	# 		next_link = urldefrag(next_link)[0]
+	# 		if next_link not in visited_pages:
+	# 			visited_pages.append(next_link)
+	# 			pages_to_visit.append(next_link)
+	f = open("testing.txt", 'w')
+	f.write(page)
+
 	clean_page = cleaner.clean_html(page)
+	f.write("\n\n\nVS\n\n\n")
+	f.write(clean_page)
+	f.close()
 	soup = BeautifulSoup(clean_page, "lxml")
-	soup = BeautifulSoup(page, "lxml")
+	return
+	extract(soup, url)
 
-	'''
-	for link in soup.findAll('a'):
-		if link.has_attr('href'):
-			if link.has_attr('class') and 'history' in link['class']:
-				continue
-			next_link = urljoin(url,link['href'])
-			next_link = urldefrag(next_link)[0]
-			if next_link not in visited_pages:
-				get_links(next_link)
-	'''
-
-	print "visiting: " + url + "\n"
-
-	extract(soup)
-
-'''
-currently not used
-just in case it becomes useful again
-'''
-def get_text_inside (block, text_inside):
-	while block.next_element is not None:
-		block = block.next_element
-		print block.name
-		if type(block)==NavigableString:
-			text_inside+=block
-		else:
-			get_text_inside(block, text_inside)
-	return text_inside
-
-def extract(page):
+def extract(page, url):
+	global count
+	results_file = open("experiment-"+str(count)+".txt", 'w')
+	count += 1
+	results_file.write("visiting: " + url + "\n\n")
 	for block in page.findAll(BLOCK_ELEMENTS):
 		text = block.text
 		if not block.find(BLOCK_ELEMENTS)==None:
 			text = ""
-			for text in block:
-				if type(text)==NavigableString:
-					text += text
-			print text
-		if not text.strip=="":
-			print text.encode("utf-8")
+			for next_text in block:
+				if type(next_text)==NavigableString:
+					text += next_text
+		if not text.isspace():
+			results_file.write(text.encode("utf-8")+"\n")
 			if is_source_code(text):
-				print "RESULT: SOURCE CODE!"
+				results_file.write("RESULT: SOURCE CODE!\n")
 			else:
-				print "RESULT: NATURAL LANGUAGE~"
+				results_file.write("RESULT: NATURAL LANGUAGE~\n")
+			results_file.write("\n")
+	results_file.close()
+	print "Finished with: " + str(url) + " at file: experiment-" + str(count-1) + ".txt"
 
 def is_source_code(text):
+	return True
 	text = clean(text)
 	word_count = get_word_count(text)
 	error_ratio = get_error_ratio(text, word_count) * ERROR_WEIGHT
 	code_ratio = get_code_ratio(text, word_count) * CODE_WEIGHT
 	score = error_ratio + code_ratio
 	score = score / SCORE_TOTAL
-	# print "error ratio: " + str(error_ratio)
-	# print "code ratio: " + str(code_ratio)
-	print "score: " + str(score)
 	if score >= SCORE_THRESHOLD:
 		return True
 	return False
@@ -175,13 +168,6 @@ def get_code_ratio (text, word_count):
 	camel_ratio = get_camel_case_occurrences(text) / float(word_count) * CAMEL_WEIGHT
 	code_ratio = punctuation_ratio + parenthesis_ratio + negation_ratio + comment_ratio + method_ratio + import_ratio + camel_ratio
 	code_ratio = code_ratio / CODE_TOTAL
-	# print "punctuation ratio: " + str(punctuation_ratio)
-	# print "parenthesis ratio: " + str(parenthesis_ratio)
-	# print "negation ratio: " + str(negation_ratio)
-	# print "comment ratio: " + str(comment_ratio)
-	# print "method ratio: " + str(method_ratio)
-	# print "import ratio: " + str(import_ratio)
-	# print "camel ratio: " + str(camel_ratio)
 	return code_ratio
 
 def get_punctuation_occurrences (text):
@@ -219,7 +205,6 @@ def get_camel_case_occurrences (text):
 	camel_count = 0
 	for word in words:
 		if CAMEL_CASE_PATTERN.match(word):
-			# print word
 			camel_count += 1
 	return camel_count
 

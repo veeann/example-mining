@@ -1,0 +1,50 @@
+visiting: https://commons.apache.org/proper/commons-io/bestpractices.html
+
+
+
+  
+    
+    
+    
+    
+    
+    Commons IO - 
+  Best practices
+
+	
+	
+    
+
+	
+	
+	
+	
+
+                            
+                                
+                                
+                  
+      
+
+	
+                          
+
+
+
+
+
+
+RESULT: SOURCE CODE!
+
+
+RESULT: SOURCE CODE!
+
+Copyright ©                    2002-2014
+                        The Apache Software Foundation.
+            All Rights Reserved.
+RESULT: SOURCE CODE!
+
+Apache Commons, Apache Commons IO, Apache, the Apache feather logo, and the Apache Commons project logos are trademarks of The Apache Software Foundation.
+      All other marks mentioned may be trademarks or registered trademarks of their respective owners.
+RESULT: SOURCE CODE!
+

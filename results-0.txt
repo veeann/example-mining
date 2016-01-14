@@ -1,433 +1,594 @@
-visiting: https://github.com/google/gson/blob/master/UserGuide.md
+visiting: http://x-stream.github.io/faq.html
 
 
 
+
+    
+        XStream - Frequently Asked Questions
+        
+        
+    
   
-    
-    
-    
-    
-    
-    
-    gson/UserGuide.md at master · google/gson · GitHub
-    
-    
-    
-    
-    
-    
-    
-
-      
-      
-      
-    
-    
-    
-    
-    
-
-    
-    
-    
-
-    
-    
-
-
-
-
-
-
-  
-
-
 
         
+        
+        
+
+    
     
 
         
 
-      
-      
-
-    
-
-    
-    
-    
-    
 
 
-    
+RESULT: NATURAL LANGUAGE~
 
-      
-  
-  
+1.4 or later.
+RESULT: NATURAL LANGUAGE~
 
-  
-  
+All dependencies are optional, XStream uses since version 1.4.1 by default xpp3:xpp3_min and xmlpull:xmlpull.
+    However it depends on the use case. XStream will run without dependencies using the DOM driver on all Java runtimes
+    or the StAX driver in combination with Java 6 or greater. See the list of optional dependencies.
+RESULT: NATURAL LANGUAGE~
 
-  
+XStream has two modes of operation: Pure Java and Enhanced. In pure Java mode,
+    XStream behaves in the same way across different JVMs, however its features are limited to what
+    reflection allows, meaning it cannot serialize certain classes or fields. In enhanced mode,
+    XStream does not have these limitations, however this mode of operation is not available to all JVMs.
+RESULT: NATURAL LANGUAGE~
+
+XStream will check since version 1.4.5 a working enhanced mode dynamically if it is available based on
+    undocumented internal Java runtime classes. This enhanced mode is known to be working on the Oracle/Sun, Apple, HP,
+    IBM and Blackdown 1.4 JVMs and onwards, for IcedTea 6 and onwards, for Hitachi, SAP and Diablo from 1.5 and
+    onwards, for BEA JRockit starting with R25.1.0. Generally it works for all modern Java runtimes based on OpenJDK.
+    Android basically supports the enhanced mode as well as the Google ApplicationEngine, but the latter's security
+    model limits the types that can be handled. Note, that an active SecurityManager might prevent the usage of the
+    enhanced mode also.
+RESULT: NATURAL LANGUAGE~
+
+Currently it is not possible to recreate every instance of a type using the official Java API only. The enhanced mode uses some undocumented, but wide-spread
+	available functionality to recreate such instances nevertheless. However, in a secured secured environment, older Java run times or a limited Java environment might
+	prevent the usage of the enhanced mode and XStream uses the plain Java API as fallback. This mode has some restrictions though:
+RESULT: NATURAL LANGUAGE~
+
+The XML Pull Parser API defines an own mechanism to load the factory for
+    the available XPP implementation. XStream's XppDriver never used this lookup mechanism automatically before version
+    1.4, now it will. Therefore you will have to add a dependency to xmlpull
+    if the XPP implementation does not deliver the classes on its own. This dependency is necessary for Xpp3 in
+    contrast to kXML2 that contains the classes. Use the Xpp3Driver or the KXml2Driver if you want to select one of the
+    directly supported XPP implementation on your own without using the XPP factory. Note, that the minimal version of
+    kXML2 does not support the XPP factory, but can be used by the KXml2Driver.
+RESULT: NATURAL LANGUAGE~
+
+XStream does work in Android 1.0, but is reported to have limited capabilities. Since XStream 1.4 Android is 
+	treated at least as JDK 5 platform, but it e.g. does not include the java.beans package. Therefore you cannot use
+	the JavaBeanConverter. Note, that Android provides an XML Pull Parser, therefore XStream can work without
+	additional dependencies.
+RESULT: NATURAL LANGUAGE~
+
+Starting with XStream 1.4.6 it is possible to instantiate an XStream instance in a GAE environment. Nevertheless
+	does GAE set some severe restrictions for XStream and therefore XStream will behave differently. Actually a
+	reflection-based converter cannot handle any type from the JDK itself. Nor is it possible to create an
+	ObjectInputStream or an ObjectOutputStream. It is not possible to define a field alias for any type within the JDK.
+	XStream will typically work as general rule, if you process your own objects.
+RESULT: NATURAL LANGUAGE~
+
+Since JDK 5 it is possible according the Java specification to write into final fields using reflection. This is not yet 
+	supported by Harmony and therefore the PureJavaReflectionProvider fails. We have also already investigated into
+	enhanced mode in Harmony, but the Harmony JVM crashed running the unit tests. However, Harmony has been retired,
+	we will no longer make any efforts in this direction.
+RESULT: NATURAL LANGUAGE~
+
+Yes. Let us know which JVM you would like supported.
+RESULT: NATURAL LANGUAGE~
+
+Running XStream in a secured environment can prevent XStream from running in enhanced mode. This is
+    especially true when running XStream in an applet. You may also try to use the JavaBeanConverter as alternative to
+    the ReflectionConverter running in enhanced or pure Java mode.
+RESULT: NATURAL LANGUAGE~
+
+This depends on the mode XStream is running in. Refer to the
+    SecurityManagerTest
+    for details. Actually XStream's converters try to check since version 1.4.6 any critical operation, before they
+    claim to be able to handle a type. As consequence XStream can behave differently running under a SecurityManager.
+    E.g. if the SecurityManager does not permit to create an instance for a derived class of ObjectOutputStream, the 
+    SerializationConverter will not handle any type and the ReflecitonConverter will take over (as long it has proper
+    rights for its own reflection-based operations).
+RESULT: NATURAL LANGUAGE~
+
+The architecture in XStream has slightly changed. Starting with XStream 1.2 the
+    HierarchicalStreamDriver
+    implementation is responsible to ensure that XML tags and attributes are valid names in XML, in XStream 1.1.x
+    this responsibility was part of the ClassMapper implementations.  Under some rare circumstances this will result in
+    an unreadable XML due to the different processing order in the workflow of such problematic tag names.
+RESULT: NATURAL LANGUAGE~
+
+You can run XStream in 1.1 compatibility mode though:
+RESULT: NATURAL LANGUAGE~
 
 
-  
-    
+RESULT: NATURAL LANGUAGE~
+
+XStream xstream = new XStream(new XppDriver(new XStream11XmlFriendlyReplacer())) {
+    protected boolean useXStream11XmlFriendlyMapper() {
+        return true;
+    }
+};
+RESULT: SOURCE CODE!
+
+XStream treats now all annotations the same and therefore it no longer auto-detects any annotation by
+    default.  You can configure XStream to run in auto-detection mode, but be aware if the 
+    implications.  As alternative you might register the
+    deprecated AnnotationReflectionConverter, that was used for XStream pre 1.3.x, but as drawback the functionality
+    to register a local converter with XStream.registerLocalConverter will no longer work.
+RESULT: NATURAL LANGUAGE~
+
+Yes. This was announced with the last 1.2.x release and was done to support the type inheritance of XML schemas. However, XStream is delivered with the
+    XStream12FieldKeySorter that can be used to 
+    sort the fields according XStream 1.2.2.
+RESULT: NATURAL LANGUAGE~
+
+In contrast to the JDK XStream is not tied to a marker interface to serialize a class. XStream ships with some specialized converters,
+    but will use reflection by default for "unknown" classes to examine, read and write the class' data. Therefore XStream can handle quite any class, especially
+    the ones referred as POJO (Plain Old Java Object).
+RESULT: NATURAL LANGUAGE~
+
+However, some types of classes exist with typical characteristics, that cannot be handled - at least not out of the box:
+RESULT: NATURAL LANGUAGE~
+
+Make it transient, specify it with XStream.omitField() or
+    annotate it with @XStreamOmitField
+RESULT: NATURAL LANGUAGE~
+
+XStream uses the same mechanism as the JDK serialization. Example:
+RESULT: NATURAL LANGUAGE~
 
 
+RESULT: NATURAL LANGUAGE~
 
+class ThreadAwareComponent {
+  private transient ThreadLocal component;
+  // ...
+  private Object readResolve() {
+    component = new ThreadLocal();
+    return this;
+  }
+}
+RESULT: SOURCE CODE!
 
-
-
-
-
-
+or
 RESULT: SOURCE CODE!
 
 
-Sign up
-Sign in
+RESULT: NATURAL LANGUAGE~
 
+class ThreadAwareComponent {
+  private transient ThreadLocal component;
+  // ...
+  private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
+    in.defaultReadObject();
+    component = new ThreadLocal();
+  }
+}
+RESULT: SOURCE CODE!
+
+Use the latter in class hierarchies, readResolve is not called for base classes.
+RESULT: NATURAL LANGUAGE~
+
+This is, in fact, the same case as above. XStream uses the same mechanism as the JDK serialization. When using
+    the enhanced mode with the optimized reflection API, it does not invoke the default constructor. The solution is to
+    implement the readResolve or readObject as demonstrated with the last question.
+RESULT: NATURAL LANGUAGE~
+
+See example for the CollectionConverter.
+RESULT: NATURAL LANGUAGE~
+
+Note, that it is possible to configure XStream to omit the container element toys using implicit collections.
+RESULT: NATURAL LANGUAGE~
+
+XStream normally has no to separate between a primitive and its boxed type. The complete reflection API works
+	always with the boxed types and converts to primitives types on the fly. However, for method and field type
+	signatures the difference is essential. Nevertheless it is possible to register derived versions of the converters
+	that are able to respect the aliasing with some minor effort. Following lines are taken from the AliasTest in the
+	acceptence tests:
 RESULT: NATURAL LANGUAGE~
 
 
 RESULT: NATURAL LANGUAGE~
 
+XStream xstream = new XStream();
+Mapper mapper = new MapperWrapper(xstream.getMapper().lookupMapperOfType(ArrayMapper.class)) {
+  public Class realClass(String elementName) {
+    Class primitiveType = Primitives.primitiveType(elementName);
+    return primitiveType != null ? primitiveType : super.realClass(elementName);
+  }
+};
+SingleValueConverter javaClassConverter = new JavaClassConverter(mapper) {};
+xstream.registerConverter(javaClassConverter);
+xstream.registerConverter(new JavaMethodConverter(javaClassConverter){});
+xstream.registerConverter(new JavaFieldConverter(javaClassConverter, mapper){});
+RESULT: SOURCE CODE!
 
+By declaring a collection as implicit, the result will have no direct representation of the collection container
+	itself anymore. Therefore, if the collection was empty at serialization time, the serialized result does not
+	contain a trace of the collection anymore. At deserialization time it will therefore not know anything about the
+	collection and will not initialize it. XStream cannot decide anyway at deserialization time, if the collection was
+	empty or null.
+RESULT: NATURAL LANGUAGE~
 
-Switch branches/tags
+By declaring a collection as implicit, the result will have no direct representation of the collection container
+	itself anymore. Therefore XStream cannot track the original type of the collection. At deserialization time it will
+	therefore look at the declaration type of the field that holds the collection and use this type's default
+	implementation, e.g. for a List this is by default an ArrayList.
+RESULT: NATURAL LANGUAGE~
 
+Beware, that this also means that collections with additional information (e.g. a TreeSet with a Comparator)
+	cannot be restored, since the comparator was already omitted at serialization time.
+RESULT: NATURAL LANGUAGE~
+
+No (except for lambda expressions), but XStream respects the Java serialization methods even for types not declared as Serializable.
+RESULT: NATURAL LANGUAGE~
+
+Yes.
+RESULT: NATURAL LANGUAGE~
+
+Non-serializable lambda expressions to not contain any information at all to recreate the instance at a later time again. These instances are treated as temporary
+    objects and as such XStream has no other possibility as to serialize null instead.
+RESULT: NATURAL LANGUAGE~
+
+Serializable lambda expressions contain information that is specific for compiler and vendor. Even worse, the compiler is free to add information related to the location
+    of the lambda expression in the source i.e. you may not be able to deserialize a lambda expression after source code changes. XStream has no control over this information 
+    and how it is used by native functionality in the JDK. Therefore Oracle strongly discourages the usage of serializable lambda expressions in the JDK documentation.
+RESULT: NATURAL LANGUAGE~
+
+Only limitedly. A proxy generated with the CGLIB Enhancer is supported, if the proxy uses either a factory or
+    only one callback. Then it is possible to recreate the proxy instance at unmarshalling time. Starting with XStream 1.3.1
+    CGLIB support is no longer automatically installed because of possible classloader problems and side-effects,
+    because of incompatible ASM versions. You can enable CGLIB support with:
 RESULT: NATURAL LANGUAGE~
 
 
+RESULT: NATURAL LANGUAGE~
 
-
-
-                722
-              
-
-
-
-
-                JsonArrayImplementsList
-              
-
-
-
-
-                date
-              
-
-
-
-
-                duplicate_keys_in_map
-              
-
-
-
-
-                gh-pages
-              
-
-
-
-
-                master
-              
-
-
-
-
-                revert-669-inet-address-test-failure
-              
-
+XStream xstream = new XStream() {
+    protected MapperWrapper wrapMapper(MapperWrapper next) {
+        return new CGLIBMapper(next);
+    }
+};
+xstream.registerConverter(new CGLIBEnhancedConverter(xstream.getMapper(), xstream.getReflectionProvider()));
 
 RESULT: SOURCE CODE!
 
-Nothing to show
+This is not a problem of XStream. You have incompatible ASM versions in your classpath. CGLIB 2.1.x and below is based on
+    ASM 1.5.x which is incompatible to newer versions that are used by common packages like Hibernate, Groovy or Guice. Check
+    your dependencies and ensure that you are using either using cglib-nodep-2.x.jar instead of cglib-2.x.jar or update to
+    cglib-2.2.x that depends on ASM 3.1. However, the nodep version contains a copy of the ASM classes with private
+    packages and will therefore not raise class incompatibilities at all.
+RESULT: NATURAL LANGUAGE~
+
+XStream uses this method to detect a CGLIB-enhanced proxy. Unfortunately the method is not available in the 
+    cglib-2.0 version. Since this version is many years old and the method is available starting with cglib-2.0.1, please 
+    consider an upgrade of the dependency, it works usually smoothly.
+RESULT: NATURAL LANGUAGE~
+
+Support of Hibernate enhanced collections and proxied types. To drop the internals of Hibernate when marshalling
+    such objects to XStream, all converters and the mapper has to be registered for the XStream instance:
 RESULT: NATURAL LANGUAGE~
 
 
-
-
-
-                gson-parent-2.5
-              
-
-
-
-
-                gson-parent-2.4
-              
-
-
-
-
-                gson-2.4
-              
-
-
-
-
-                gson-2.3.1
-              
-
-
-
-
-                gson-2.3
-              
-
-
-
-
-                gson-2.2.4
-              
-
-
-
-
-                gson-2.2.3
-              
-
-
-
-
-                gson-2.2.2
-              
-
-
-
-
-                gson-2.2.1
-              
-
-
-
-
-                gson-2.2
-              
-
-
-
-
-                gson-2.1
-              
-
-
-
-
-                gson-2.0
-              
-
-
-
-
-                gson-1.7.2
-              
-
-
-
-
-                gson-1.7.1
-              
-
-
-
-
-                1.7
-              
-
-
-
-
-                1.6
-              
-
-
-
-
-                1.5
-              
-
-
-
-
-                1.4-beta
-              
-
-
-
-
-                1.3
-              
-
-
-
-
-                1.3beta3
-              
-
-
-
-
-                1.3beta2
-              
-
-
-
-
-                1.3-beta
-              
-
-
-
-
-                1.2.3
-              
-
-
-
-
-                1.2.2
-              
-
-
-
-
-                1.2.1
-              
-
-
-
-
-                1.2
-              
-
-
-
-
-                1.1.1
-              
-
-
-
-
-                1.1
-              
-
-
-
-
-                1.0
-              
-
+RESULT: NATURAL LANGUAGE~
+
+final XStream xstream = new XStream() {
+  protected MapperWrapper wrapMapper(final MapperWrapper next) {
+    return new HibernateMapper(next);
+  }
+};
+xstream.registerConverter(new HibernateProxyConverter());
+xstream.registerConverter(newÂ HibernatePersistentCollectionConverter(xstream.getMapper()));
+xstream.registerConverter(newÂ HibernatePersistentMapConverter(xstream.getMapper()));
+xstream.registerConverter(newÂ HibernatePersistentSortedMapConverter(xstream.getMapper()));
+xstream.registerConverter(newÂ HibernatePersistentSortedSetConverter(xstream.getMapper()));
 
 RESULT: SOURCE CODE!
 
-Nothing to show
+Yes. Hibernate Envers is an optional dependency for XStream and it is automatically supported by XStream's
+    Hibernate package when the proxy collection types of Envers are available on the classpath.
+RESULT: NATURAL LANGUAGE~
+
+XStream's generic converters and the marshalling strategies use a number of attributes on their own. Especially the attributes named
+    id, class and reference are likely to cause such collisions. Main reason is XStream's history, because
+    originally user defined attributes were not supported and all attribute were system generated. Starting with XStream 1.3.1 you can redefine
+    those attributes to allow the names to be used for your own ones. The following snippet defines XStream to use different system attributes
+    for id and class while the field id of YourClass is written into the attribute class:
 RESULT: NATURAL LANGUAGE~
 
 
-
-      Find file
-    
-
 RESULT: NATURAL LANGUAGE~
 
-
-gson/UserGuide.md
+XStream xstream = new XStream() {
+xstream.useAttributeFor(YourClass.class, "id");
+xstream.aliasAttribute("class", "id");
+xstream.aliasSystemAttribute("type", "class");
+xstream.aliasSystemAttribute("refid", "id");
 
 RESULT: SOURCE CODE!
 
-
-
-mbrukman
-Added language annotations to code blocks.
-
+Yes. XStream's ReflectionConverter uses the defined field order by default. You can override it by using an specific FieldKeySorter:
 RESULT: NATURAL LANGUAGE~
 
 
+RESULT: NATURAL LANGUAGE~
 
-2
-         contributors
-      
- 
- 
+SortableFieldKeySorter sorter = new SortableFieldKeySorter();
+sorter.registerFieldOrder(MyType.class, new String[] { "firstToSerialize", "secondToSerialize", "thirdToSerialize" });
+xstream = new XStream(new Sun14ReflectionProvider(new FieldDictionary(sorter)));
 
 RESULT: SOURCE CODE!
 
+For more advanced class migrations, you may
+RESULT: NATURAL LANGUAGE~
 
-Raw
-Blame
-History
+Future versions of XStream will include features to make these type of migrations easier.
+RESULT: NATURAL LANGUAGE~
 
+Serializing an object graph is never a problem, even if the classes of those objects have been loaded by
+    a different class loader. The situation changes completely at deserialization time. In this case you must set the
+    class loader to use with:
 RESULT: NATURAL LANGUAGE~
 
 
-      666 lines (487 sloc)
-      
-    29.7 KB
-  
+RESULT: NATURAL LANGUAGE~
+
+xstream.setClassLoader(yourClassLoader);
 RESULT: SOURCE CODE!
 
-Gson is a Java library that can be used to convert Java Objects into their JSON representation. It can also be used to convert a JSON string to an equivalent Java object.
+Although XStream caches a lot of type related information to gain speed, it keeps those information in
+	tables with weak references that should be cleaned by the garbage collector when the class loader is freed.
 RESULT: NATURAL LANGUAGE~
 
-Gson can work with arbitrary Java objects including pre-existing objects that you do not have source code of.
+Note, that this call should be made quite immediately after creating the XStream and before any other
+	configuration is done. Otherwise configuration based on special types might refer classes loaded with the wrong
+	classloader.
 RESULT: NATURAL LANGUAGE~
 
-Here are some metrics that we obtained on a desktop (dual opteron, 8GB RAM, 64-bit Ubuntu) running lots of other things along-with the tests. You can rerun these tests by using the class PerformanceTest.
+XStream architecture is based on IO Readers and Writers, while the XML declaration is the responsibility of XML
+    parsers.  All HierarchicalStreamDriver
+    implementations respect the encoding since version 1.3, but only if you provide an 
+    InputStream. If XStream consumes a 
+    Reader you have to initialize the reader with 
+    the appropriate encoding yourself, since it is now the reader's task to perform the encoding and no XML parser can
+    change the encoding of a Reader and any encoding definition in the XML header will be ignored.
 RESULT: NATURAL LANGUAGE~
 
-Note: Delete the disabled_ prefix to run these tests. We use this prefix to prevent running these tests every time we run JUnit tests.
+XStream is designed to write XML snippets, so you can embed its output into an existing stream or string.
+    You can write the XML declaration yourself into the Writer before using it to call XStream.toXML(writer).
 RESULT: NATURAL LANGUAGE~
 
-Gson was originally created for use inside Google where it is currently used in a number of projects. It is now used by a number of public projects and companies. See details here.
+XStream does no character encoding by itself, it relies on the configuration of the underlying XML writer.
+    By default it uses its own PrettyPrintWriter which writes into the default encoding of the current locale. To write
+    UTF-8 you have to provide a Writer
+    with the appropriate encoding yourself.
 RESULT: NATURAL LANGUAGE~
 
-The primary class to use is Gson which you can just create by calling new Gson(). There is also a class GsonBuilder available that can be used to create a Gson instance with various settings like version control and so on.
+XStream maps Java class names and field names to XML tags or attributes.  Unfortunately this mapping cannot
+    be 1:1, since some characters used for 
+    identifiers in Java are invalid in XML names.  Therefore
+    XStream uses an XmlFriendlyNameCoder
+    to replace these characters with a replacement.  By default this
+    NameCoder uses an underscore as escape
+    character and has therefore to escape the underscore itself also.  You may provide a different configured instance
+    of the XmlFriendlyNameCoder or a complete different implementation like the 
+    NoNameCoder to prevent name coding
+    at all.  However it is your responsibility then to ensure, that the resulting names are valid for XML.
 RESULT: NATURAL LANGUAGE~
 
-The Gson instance does not maintain any state while invoking Json operations. So, you are free to reuse the same object for multiple Json serialization and deserialization operations.
+By default XStream is written for persistence i.e. it will read the XML it can write.  If you have to transform
+    a given XML into an object graph, you should go the other way round. Use XStream to transfer your objects into XML.
+    If the written XML matches your schema, XStream is also able to read it.  This way is much easier, since you can
+    spot the differences in the XML much more easy than to interpret the exceptions XStream will throw if it cannot
+    match the XML into your objects.
 RESULT: NATURAL LANGUAGE~
 
-To use Gson with Maven2/3, you can use the Gson version available in Maven Central by adding the following dependency:
+Your parser is basically right!  A character of value 0 is not valid as part of XML according the XML specification (see 
+    version 1.0 or 
+    1.1), neither directly nor as character 
+    entity nor within CDATA. But not every parser respects this part of the specification (e.g. Xpp3 will ignore it and read 
+    character entities).  If you expect such characters in your strings and you do not use the Xpp3 parser, you should consider
+    to use a converter that writes the string as byte array in Base64 code.  As alternative you may force the 
+    PrettyPrintWriter or derived writers
+    to be XML 1.0 or 1.1. compliant, i.e. in this mode a StreamException is thrown.
+RESULT: NATURAL LANGUAGE~
+
+Your parser is probably right!  Control characters are only valid as part of XML 1.1.  You should add an XML header
+    declaring this version or use a parser that does not care about this part of the specification (e.g. Xpp3 parser).
+RESULT: NATURAL LANGUAGE~
+
+You can only write types as attributes that are represented as a single String value and are handled therefore
+    by SingleValueConverter implementations. If your type is handled by a Converter implementation, the configuration
+    of XStream to write an attribute (using XStream.useAttributeFor() or @XStreamAsAttribute) is simply ignored.
+RESULT: NATURAL LANGUAGE~
+
+This is part of the XML specification and a required functionality for any XML parser called
+    attribute value normalization. It cannot
+    be influenced by XStream.  A compliant XML parser will replace by default real tab, carriage return and line feed
+    characters with normal spaces.  If you want to keep these characters you will have to encode them with entities.
+RESULT: NATURAL LANGUAGE~
+
+Not every XML parser supports namespaces and not every XML parser that supports namespaces can be configured
+    within XStream to use those. Basically namespaces must be supported individually for the different XML parsers and the
+    only support for namespaces that has currently been implemented in XStream is for the StAX paser. Therefore use and
+    configure the StaxDriver of XStream to use namespaces.
+RESULT: NATURAL LANGUAGE~
+
+XStream generates only XPath compliant expressions. These have a very limited syntax and they are the only ones
+    that can be interpreted at deserialization again, since XStream does not use an XPath interpreter. Therefore there
+    is no support for attribute selectors, qualified element access with axis names or functions. For real XPath
+    support you will have to implement your own MarshallingStrategy.
+RESULT: NATURAL LANGUAGE~
+
+Yes, this is right. However, the result type of an 
+    XPath expression
+    evaluation can be defined. A node result from a node list is the lists first node, therefore the XPath of XStream
+    is compliant. Since XStream does not use a real XPath engine, you do not have to worry about memory consumption or
+    wasted evaluation time, XStream will always operate on a single node anyway. Since XStream 1.4 you can force
+    XStream to write XPath expressions that select explicit the single node by using the new modes
+    XStream.SINGLE_NODE_XPATH_ABSOLUTE_REFERENCES or SINGLE_NODE_XPATH_RELATIVE_REFERENCES. Instead of generating a
+    path like "/doc/list/elem/field" XStream will then generate "/doc[1]/list[1]/elem[1]/field[1]". The two notations
+    are transparent at deserialization time.
+RESULT: NATURAL LANGUAGE~
+
+As always, first for historical reasons! Main difference is that the 
+	JettisonMappedXmlDriver is a 
+	thin wrapper around Jettison in combination with the 
+	StaxDriver, while the 
+	JsonHierarchicalStreamDriver
+	uses an own more flexible implementation, but can only be used to generate JSON, deserialization is not implemented.
+RESULT: NATURAL LANGUAGE~
+
+Users of Java 5 or higher can use Jettison 1.2, users of Java 1.4.2 have to use Jettison 1.0.1.  Jettison 1.1
+	nor Jettison 1.3 or higher is supported.
+RESULT: NATURAL LANGUAGE~
+
+XStream's implementation to deserialize JSON is based on Jettison and StAX. Jettison implements a XMLStreamReader
+	of	StaX and transforms the processed JSON virtually into XML first. However, if the JSON string starts with an array it is not
+	possible for Jettison to create a valid root element, since it has no name.
+RESULT: NATURAL LANGUAGE~
+
+Deserialization of JSON is currently done by Jettison, that transforms the JSON string into a StAX stream.
+    XStream itself does nothing know about the JSON format here. If your JSON string reaches some kind of
+    complexity and you do not know how to design your Java objects and configure XStream to match those,
+    you should have a look at the intermediate XML that is processed by XStream in the end. This might help to
+    identify the problematic spots. Also consider then marshalling your Java
+    objects into XML first. You can use following code to generate the XML:
 RESULT: NATURAL LANGUAGE~
 
 
 RESULT: NATURAL LANGUAGE~
 
-<dependencies>
-    <!--  Gson: Java to Json conversion -->
-    <dependency>
-      <groupId>com.google.code.gson</groupId>
-      <artifactId>gson</artifactId>
-      <version>2.5</version>
-      <scope>compile</scope>
-    </dependency>
-</dependencies>
+String json = "{\"string\": \"foo\"}";
+HierarchicalStreamDriver driver = new JettisonMappedXmlDriver();
+StringReader reader = new StringReader(json);
+HierarchicalStreamReader hsr = driver.createReader(reader);
+StringWriter writer = new StringWriter();
+new HierarchicalStreamCopier().copy(hsr, new PrettyPrintWriter(writer));
+writer.close();
+System.out.println(writer.toString());
+
 RESULT: SOURCE CODE!
 
-That is it, now your maven project is Gson enabled. 
+JSON represents a very simple data model for easy data transfer.  Especially it has no equivalent for XML
+	attributes.  Those are written with a leading "@" character, but this is not always possible without
+	violating the syntax (e.g. for array types).  Those may silently dropped (and makes it therefore difficult to
+	implement deserialization).  References are another issue in the serialized object graph, since JSON has no
+	possibility to express such a construct.  You should therefore always set the NO_REFERENCES mode of XStream.
+	Additionally you cannot use implicit collections, since the properties in a JSON object must have unique names.
+RESULT: NATURAL LANGUAGE~
+
+JavaScript does not know about integer values. All numbers are represented with double precition floats using
+	64 bits (IEEE 754).  These types cannot represent technically the complete value range of 64-bit integers like
+	Java's Long.  With the JsonWriter you have the possibility since XStream 1.4.5 to set
+	IEEE_754_MODE to force
+	any long value that is not representable as JavaScript number to be written as string value in JSON.  With the
+	Jettison-based JettisonMappedXmlDriver you may either set a different TypeConverter or force the default converter
+	to write integer values out of the range of 32-bit always as string setting the system property
+	jettison.mapped.typeconverter.enforce_32bit_integer to true (not available for
+	Jettison 1.0.1 and Java 1.4).
+RESULT: NATURAL LANGUAGE~
+
+The JSON spec requires any JSON string to be in UTF-8 encoding. However, XStream ensures this only if you
+	provide an InputStream or an OutputStream.	If you provide a Reader or Writer you have to ensure this requirement 
+	on your own.
+RESULT: NATURAL LANGUAGE~
+
+Well, no, the JSON is valid! Please check yourself with the JSON syntax checker.
+	However, some JavaScript libraries silently assume that the JSON labels are valid JavaScript identifiers, because JavaScript
+	supports a convenient way to address an element, if the label is a valid JavaScript identifier:
 RESULT: NATURAL LANGUAGE~
 
 
 RESULT: NATURAL LANGUAGE~
 
-// Serialization
-Gson gson = new Gson();
-gson.toJson(1);            // ==> 1
-gson.toJson("abcd");       // ==> "abcd"
-gson.toJson(new Long(10)); // ==> 10
-int[] values = { 1 };
-gson.toJson(values);       // ==> [1]
+var json = {"label": "foo", "label-with-dash": "bar"};
+var fooVar = json.label; // works for labels that are JavaScript identifiers
+var barVar = json["label-with-dash"]; // using an array index works always
 
-// Deserialization
-int one = gson.fromJson("1", int.class);
-Integer one = gson.fromJson("1", Integer.class);
-Long one = gson.fromJson("1", Long.class);
-Boolean false = gson.fromJson("false", Boolean.class);
-String str = gson.fromJson("\"abc\"", String.class);
-String anotherStr = gson.fromJson("[\"abc\"]", String.class);
+RESULT: SOURCE CODE!
+
+As alternative you may wrap the JsonWriter and replace any dash with an underscore:
+RESULT: NATURAL LANGUAGE~
+
+
+RESULT: NATURAL LANGUAGE~
+
+HierarchicalStreamDriver driver = new JsonHierarchicalStreamDriver() {
+    public HierarchicalStreamWriter createWriter(Writer out) {
+        return new WriterWrapper(super.createWriter(out)) {
+            public void startNode(String name) {
+                startNode(name, null);
+            }
+            public void startNode(String name, Class clazz) {
+                wrapped.startNode(name.replace('-', '_'), clazz);
+            }
+        }
+    }
+};
+XStream xstream = new XStream(driver);
+
+RESULT: SOURCE CODE!
+
+Since XStream verison 1.4.7 it does no longer handle an
+    EventHandler automatically.
+    Such an instance can be used to initiate calls on arbitray instances at deserialization time e.g. 
+    ProcessBuilder.start()
+    You can register a ReflectionConverter instance explicitly for the EventHandler if you need support for such
+    instances.
+RESULT: NATURAL LANGUAGE~
+
+Yes, XStream is designed to convert any object form Java to XML and back out of the box. In consequence it is
+    possible to adjust the processed XML manually to inject arbitrary objects into the deserialized object graph. To
+    avoid such a behavior, you have several options:
+RESULT: NATURAL LANGUAGE~
+
+XStream is designed for serializing objects using internal fields, whereas
+    XMLEncoder is designed for
+    serializing JavaBeans using public API methods (typically in the form
+    of getXXX(), setXXX(), addXXX() and removeXXX() methods.
+RESULT: SOURCE CODE!
+
+JAXB is a Java binding tool. It generates Java code from a schema and you are able to transform from those classes into 
+    XML matching the processed schema and back. Note, that you cannot use your own objects, you have to use what is 
+    generated.
+RESULT: NATURAL LANGUAGE~
+
+Yes. Once the XStream instance has been created and configured, it may be shared across multiple threads
+    allowing objects to be serialized/deserialized concurrently (unless you enable the
+    auto-detection to process annotations on-the-fly).  Actually the
+    creation and initialization of XStream is quite expensive, therefore it is recommended to keep the XStream instance
+    itself. If you abolutely have to rely on annotation processing on the fly, you will have to use separate XStream
+    instances for each thread - either by using everytime a new instance or by a shared pool.
+RESULT: NATURAL LANGUAGE~
+
+This cannot be answered in general, but following topics have impact on the memory:
+RESULT: NATURAL LANGUAGE~
+
+XStream is a generalizing library, it inspects and handles your types on the fly. Therefore it will normally be slower than
+    a piece of optimized Java code generated out of a schema. However, it is possible to increase the performance anyway:
+RESULT: NATURAL LANGUAGE~
+
+Note, you should never try to optimize code for performance simply because you believe that you
+    have detected a bottle neck. Always use proper tools like a profiler to verify where your hotspots are and whether your
+    optimization was really successful or not.
+RESULT: NATURAL LANGUAGE~
+
+No. It is a serialization tool.
+RESULT: NATURAL LANGUAGE~
+
+No. For this kind of work a data binding tool such as XMLBeans is appropriate.
+RESULT: NATURAL LANGUAGE~
+
+XStream works on a stream-based parser model, while SAX is event-based.  The stream based model implies, that the
+    caller consumes the individual tokens from the XML parser on demand, while in an event-based model the parser
+    controls the application flow on its own and will use callbacks to support client processing.  The different
+    architecture makes it therefore impossible for XStream to use an event-driven XML parser.
+RESULT: NATURAL LANGUAGE~
+

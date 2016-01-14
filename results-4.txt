@@ -1,462 +1,117 @@
-visiting: https://github.com/google/gson/blob/master/UserGuide.md
+visiting: http://x-stream.github.io/objectstream.html
 
 
 
 
-
-RESULT: NATURAL LANGUAGE~
-
-
-
-
-RESULT: NATURAL LANGUAGE~
-
-
-
-
-RESULT: NATURAL LANGUAGE~
-
-
-Sign up
-Sign in
-
-RESULT: NATURAL LANGUAGE~
-
-
-
-RESULT: NATURAL LANGUAGE~
-
-
-RESULT: NATURAL LANGUAGE~
-
-
-
-RESULT: NATURAL LANGUAGE~
-
-
-
-
-RESULT: NATURAL LANGUAGE~
-
-
-
-
-RESULT: NATURAL LANGUAGE~
-
-
-
-
-RESULT: NATURAL LANGUAGE~
-
-
-
-
-RESULT: NATURAL LANGUAGE~
-
-
-
-RESULT: NATURAL LANGUAGE~
-
-
-
-RESULT: NATURAL LANGUAGE~
-
-
-
-
-RESULT: NATURAL LANGUAGE~
-
-
-
-
-RESULT: NATURAL LANGUAGE~
-
-
-
-
-RESULT: NATURAL LANGUAGE~
-
-
-
-
-RESULT: NATURAL LANGUAGE~
-
-
-
-
-RESULT: NATURAL LANGUAGE~
-
-
-
-
-RESULT: NATURAL LANGUAGE~
-
-
-
-Switch branches/tags
-
-RESULT: NATURAL LANGUAGE~
-
-
-
-
-RESULT: NATURAL LANGUAGE~
-
-
-
-RESULT: NATURAL LANGUAGE~
-
-
-
-RESULT: NATURAL LANGUAGE~
-
-
-
-
-RESULT: NATURAL LANGUAGE~
-
-
-
-
-
-                722
-              
-
-
-
-
-                JsonArrayImplementsList
-              
-
-
-
-
-                date
-              
-
-
-
-
-                duplicate_keys_in_map
-              
-
-
-
-
-                gh-pages
-              
-
-
-
-
-                master
-              
-
-
-
-
-                revert-669-inet-address-test-failure
-              
-
-
-RESULT: SOURCE CODE!
-
-Nothing to show
-RESULT: NATURAL LANGUAGE~
-
-
-
-
-RESULT: NATURAL LANGUAGE~
-
-
-
-
-
-                gson-parent-2.5
-              
-
-
-
-
-                gson-parent-2.4
-              
-
-
-
-
-                gson-2.4
-              
-
-
-
-
-                gson-2.3.1
-              
-
-
-
-
-                gson-2.3
-              
-
-
-
-
-                gson-2.2.4
-              
-
-
-
-
-                gson-2.2.3
-              
-
-
-
-
-                gson-2.2.2
-              
-
-
-
-
-                gson-2.2.1
-              
-
-
-
-
-                gson-2.2
-              
-
-
-
-
-                gson-2.1
-              
-
-
-
-
-                gson-2.0
-              
-
-
-
-
-                gson-1.7.2
-              
-
-
-
-
-                gson-1.7.1
-              
-
-
-
-
-                1.7
-              
-
-
-
-
-                1.6
-              
-
-
-
-
-                1.5
-              
-
-
-
-
-                1.4-beta
-              
-
-
-
-
-                1.3
-              
-
-
-
-
-                1.3beta3
-              
-
-
-
-
-                1.3beta2
-              
-
-
-
-
-                1.3-beta
-              
-
-
-
-
-                1.2.3
-              
-
-
-
-
-                1.2.2
-              
-
-
-
-
-                1.2.1
-              
-
-
-
-
-                1.2
-              
-
-
-
-
-                1.1.1
-              
-
-
-
-
-                1.1
-              
-
-
-
-
-                1.0
-              
-
-
-RESULT: SOURCE CODE!
-
-Nothing to show
-RESULT: NATURAL LANGUAGE~
-
-
-
-      Find file
+    
+        XStream - Object Streams Tutorial
+        
+        
+        
+        
     
 
+        
+        
+        
+
+    
+    
+
+        
+
+
+
+RESULT: NATURAL LANGUAGE~
+
+XStream provides alternative implementations of java.io.ObjectInputStream and
+        java.io.ObjectOutputStream,
+        allowing streams of objects to be serialized or deserialized from XML.
+RESULT: NATURAL LANGUAGE~
+
+This is useful when processing large sets of objects, as only one needs to be in memory
+        at a time.
+RESULT: NATURAL LANGUAGE~
+
+Obviously you should use also a stream-based XML parser reading the XML. A DOM-based XML parser
+        will process the complete XML and build the object model before XStream is able to to handle the first
+        element.
+RESULT: NATURAL LANGUAGE~
+
+The interface to the object streaming capabilities of XStream is through the standard
+        java.io.ObjectOutputStream and java.io.ObjectInputStream objects.
+RESULT: NATURAL LANGUAGE~
+
+To serialize a stream of objects to XML:
 RESULT: NATURAL LANGUAGE~
 
 
-gson/UserGuide.md
+RESULT: NATURAL LANGUAGE~
 
+ObjectOutputStream out = xstream.createObjectOutputStream(someWriter);
+
+out.writeObject(new Person("Joe", "Walnes"));
+out.writeObject(new Person("Someone", "Else"));
+out.writeObject("hello");
+out.writeInt(12345);
+
+out.close();
 RESULT: SOURCE CODE!
 
-
+The resulting XML:
+RESULT: NATURAL LANGUAGE~
 
 
 RESULT: NATURAL LANGUAGE~
 
-
-
-mbrukman
-Added language annotations to code blocks.
-
-RESULT: NATURAL LANGUAGE~
-
-
-
-2
-         contributors
-      
- 
- 
-
+<object-stream>
+  <com.blah.Person>
+    <firstname>Joe</firstname>
+    <lastname>Walnes</lastname>
+  </com.blah.Person>
+  <com.blah.Person>
+    <firstname>Someone</firstname>
+    <lastname>Else</lastname>
+  </com.blah.Person>
+  <string>hello</string>
+  <int>123</int>
+</object-stream>
 RESULT: SOURCE CODE!
 
+To deserialze the stream of objects from the XML:
+RESULT: NATURAL LANGUAGE~
 
 
 RESULT: NATURAL LANGUAGE~
 
+ObjectInputStream in = xstream.createObjectInputStream(someReader);
 
-
-
-RESULT: NATURAL LANGUAGE~
-
-
-
-
-RESULT: NATURAL LANGUAGE~
-
-
-
-
-RESULT: NATURAL LANGUAGE~
-
-
-Raw
-Blame
-History
-
-RESULT: NATURAL LANGUAGE~
-
-
-      666 lines (487 sloc)
-      
-    29.7 KB
-  
+Person a = (Person)in.readObject();
+Person b = (Person)in.readObject();
+String c = (String)in.readObject();
+int    d = in.readInt();
 RESULT: SOURCE CODE!
 
-
-
-
+Because an XML document can only have a single root node, all the serialized elements must be wrapped in an
+        additional root node. This root node defaults to <object-stream>, as shown in the example above.
 RESULT: NATURAL LANGUAGE~
 
+This can be changed by using the overloaded method:
+        xstream.createObjectOutputStream(Writer writer, String rootNodeName);
+RESULT: SOURCE CODE!
 
-
-
+Remember to call ObjectOutputStream.close(), otherwise the stream will contain incomplete XML.
 RESULT: NATURAL LANGUAGE~
 
-Gson is a Java library that can be used to convert Java Objects into their JSON representation. It can also be used to convert a JSON string to an equivalent Java object.
+When there are no more objects left to read in the stream, ObjectInputStream.readObject() (or primitive
+        equivalent) will throw java.io.EOFException.
 RESULT: NATURAL LANGUAGE~
 
-Gson can work with arbitrary Java objects including pre-existing objects that you do not have source code of.
+Normally XStream will not know about references between the different objects that are written individually in the ObjectStream.
+        Nevertheless there is an example in the acceptance tests (MultipleObjectsInOneStreamTest) where such a functionality is realized with 
+        the help of a custom MarshallingStrategy. Note, that this implementation is not for general use, since it will ignore some parameters at 
+        second invocation, but they do not matter in the demonstrated use case. Additionally those references prevent the objects from being 
+        garbage collected, which is a bit counter-productive for the use case of ObjectStreams as described above. So you have to know what 
+        you do!
 RESULT: NATURAL LANGUAGE~
 
-Here are some metrics that we obtained on a desktop (dual opteron, 8GB RAM, 64-bit Ubuntu) running lots of other things along-with the tests. You can rerun these tests by using the class PerformanceTest.
-RESULT: NATURAL LANGUAGE~
-
-Note: Delete the disabled_ prefix to run these tests. We use this prefix to prevent running these tests every time we run JUnit tests.
-RESULT: NATURAL LANGUAGE~
-
-Gson was originally created for use inside Google where it is currently used in a number of projects. It is now used by a number of public projects and companies. See details here.
-RESULT: NATURAL LANGUAGE~
-
-The primary class to use is Gson which you can just create by calling new Gson(). There is also a class GsonBuilder available that can be used to create a Gson instance with various settings like version control and so on.
-RESULT: NATURAL LANGUAGE~
-
-The Gson instance does not maintain any state while invoking Json operations. So, you are free to reuse the same object for multiple Json serialization and deserialization operations.
-RESULT: NATURAL LANGUAGE~
-
-To use Gson with Maven2/3, you can use the Gson version available in Maven Central by adding the following dependency:
-RESULT: NATURAL LANGUAGE~
-
-<pre>&lt;<span class="pl-ent">dependencies</span>&gt;
-    <span class="pl-c">&lt;!--  Gson: Java to Json conversion --&gt;</span>
-    &lt;<span class="pl-ent">dependency</span>&gt;
-      &lt;<span class="pl-ent">groupId</span>&gt;com.google.code.gson&lt;/<span class="pl-ent">groupId</span>&gt;
-      &lt;<span class="pl-ent">artifactId</span>&gt;gson&lt;/<span class="pl-ent">artifactId</span>&gt;
-      &lt;<span class="pl-ent">version</span>&gt;2.5&lt;/<span class="pl-ent">version</span>&gt;
-      &lt;<span class="pl-ent">scope</span>&gt;compile&lt;/<span class="pl-ent">scope</span>&gt;
-    &lt;/<span class="pl-ent">dependency</span>&gt;
-&lt;/<span class="pl-ent">dependencies</span>&gt;</pre>

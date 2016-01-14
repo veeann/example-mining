@@ -13,8 +13,8 @@ visited_pages = []
 pages_to_visit = deque([])
 count = 0
 nl_tool = language_check.LanguageTool('en-US')
-BLOCK_ELEMENTS = ['article', 'aside', 'blockquote', 'div', 'main', 'p', 'pre', 'section']
-ELEMENTS_TO_IGNORE = ['address', 'canvas', 'dd', 'dl', 'fieldset', 'figcaption', 'figure', 'footer', 'form', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'header', 'hgroup', 'hr', 'li', 'nav', 'noscript', 'ol', 'output', 'table', 'tfoot', 'ul', 'video']
+BLOCK_ELEMENTS = ['article', 'aside', 'blockquote', 'div', 'main', 'p', 'pre', 'section', 'table']
+ELEMENTS_TO_IGNORE = ['address', 'canvas', 'dd', 'dl', 'fieldset', 'figcaption', 'figure', 'footer', 'form', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'header', 'hgroup', 'hr', 'li', 'nav', 'noscript', 'ol', 'output', 'tfoot', 'ul', 'video']
 CAMEL_CASE_PATTERN = re.compile('[A-Z]*[a-z]+[A-Z]+')
 PUNCTUATION_LIST = [';', '(', ')', '=', '{', '}', '[', ']']
 

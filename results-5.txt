@@ -1,0 +1,167 @@
+visiting: http://x-stream.github.io/persistence-tutorial.html
+
+
+
+
+    
+        XStream - Persistence API Tutorial
+        
+        
+    
+  
+
+        
+        
+        
+
+    
+    
+
+        
+
+
+
+RESULT: NATURAL LANGUAGE~
+
+Suppose that you need a easy way to persist some objects in the file system. Not just one, but a whole collection.
+The real problem arrives when you start using java.io API in order to create one output stream for each object, showing
+itself to be really painful - although simple.
+RESULT: NATURAL LANGUAGE~
+
+Imagine that you have the following Java class, a basic Author class (stolen from some other tutorial):
+RESULT: NATURAL LANGUAGE~
+
+
+RESULT: NATURAL LANGUAGE~
+
+package com.thoughtworks.xstream;
+
+public class Author {
+        private String name;
+        public Author(String name) {
+                this.name = name;
+        }
+        public String getName() {
+                return name;
+        }
+}
+RESULT: SOURCE CODE!
+
+By using the XmlArrayList implementation of java.util.List you get an easy way to write all authors to disk
+RESULT: NATURAL LANGUAGE~
+
+The XmlArrayList (and related collections) receives a PersistenceStrategy during its construction. This Strategy decides
+what to do with each of its elements. The basic implementation - our need - is the FilePersistenceStrategy, capable of
+writing different files to a base directory.
+RESULT: NATURAL LANGUAGE~
+
+
+RESULT: NATURAL LANGUAGE~
+
+
+// prepares the file strategy to directory /tmp
+PersistenceStrategy strategy = new FilePersistenceStrategy(new File("/tmp"));
+
+RESULT: SOURCE CODE!
+
+We can easily create an XmlArrayList from that strategy:
+RESULT: NATURAL LANGUAGE~
+
+
+RESULT: NATURAL LANGUAGE~
+
+
+// prepares the file strategy to directory /tmp
+PersistenceStrategy strategy = new FilePersistenceStrategy(new File("/tmp"));
+// creates the list:
+List list = new XmlArrayList(strategy);
+
+RESULT: SOURCE CODE!
+
+Now that we have an XmlArrayList object in our hands, we are able to add, remove and search for objects as usual.
+Let's add five authors and play around with our list:
+RESULT: NATURAL LANGUAGE~
+
+
+RESULT: NATURAL LANGUAGE~
+
+package org.codehaus.xstream.examples;
+
+public class AddAuthors {
+
+	public static void main(String[] args) {
+	
+		// prepares the file strategy to directory /tmp
+		PersistenceStrategy strategy = new FilePersistenceStrategy(new File("/tmp"));
+		// creates the list:
+		List list = new XmlArrayList(strategy);
+		
+		// adds four authors
+		list.add(new Author("joe walnes"));
+		list.add(new Author("joerg schaible"));
+		list.add(new Author("mauro talevi"));
+		list.add(new Author("guilherme silveira"));
+		
+		// adding an extra author
+		Author mistake = new Author("mama");
+		list.add(mistake);
+	
+	}
+}
+
+RESULT: SOURCE CODE!
+
+If we check the /tmp directory, there are five files: int@1.xml, int@2.xml, int@3.xml, int@4.xml, int@5.xml, each
+one containing the XML serialized form of our authors.
+RESULT: NATURAL LANGUAGE~
+
+Let's remove mama from the list and iterate over all authors:
+RESULT: NATURAL LANGUAGE~
+
+
+RESULT: NATURAL LANGUAGE~
+
+package org.codehaus.xstream.examples;
+
+public class RemoveMama {
+
+	public static void main(String[] args) {
+	
+		// prepares the file strategy to directory /tmp
+		PersistenceStrategy strategy = new FilePersistenceStrategy(new File("/tmp"));
+		// looks up the list:
+		List list = new XmlArrayList(strategy);
+		
+		// remember the list is still there! the files int@[1-5].xml are still in /tmp!
+		// the list was persisted!
+		
+		for(Iterator it = list.iterator(); it.hasNext(); ) {
+			Author author = (Author) it.next();
+			if(author.getName().equals("mama")) {
+				System.out.println("Removing mama...");
+				it.remove();
+			} else {
+				System.out.println("Keeping " + author.getName());
+			}
+		}
+	
+	}
+}
+
+RESULT: SOURCE CODE!
+
+The result?
+RESULT: NATURAL LANGUAGE~
+
+
+RESULT: NATURAL LANGUAGE~
+
+Keeping joe walnes
+Keeping joerg schaible
+Keeping mauro talevi
+Keeping guilherme silveira
+Removing mama...
+
+RESULT: NATURAL LANGUAGE~
+
+Another use case is to split the XML into master/detail documents by declaring a local converter for a collection

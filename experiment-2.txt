@@ -1,0 +1,50 @@
+visiting: https://commons.apache.org/proper/commons-logging/guide.html
+
+
+
+  
+    
+    
+    
+    
+    
+    Apache Commons Logging - 
+  User Guide
+
+	
+	
+    
+
+	
+	
+	
+	
+
+                            
+                                
+                                
+                  
+      
+
+	
+                          
+
+
+
+
+
+
+RESULT: SOURCE CODE!
+
+
+RESULT: SOURCE CODE!
+
+Copyright ©                    2001-2014
+                        The Apache Software Foundation.
+            All Rights Reserved.
+RESULT: SOURCE CODE!
+
+Apache Commons, Apache Commons Logging, Apache, the Apache feather logo, and the Apache Commons project logos are trademarks of The Apache Software Foundation.
+      All other marks mentioned may be trademarks or registered trademarks of their respective owners.
+RESULT: SOURCE CODE!
+

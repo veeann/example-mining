@@ -1,3 +1,4 @@
-https://github.com/google/gson/blob/master/UserGuide.md
-http://x-stream.github.io/graphs.html
-http://x-stream.github.io/tutorial.html
+https://commons.apache.org/proper/commons-io/description.html
+https://commons.apache.org/proper/commons-io/bestpractices.html
+https://commons.apache.org/proper/commons-logging/guide.html
+https://commons.apache.org/proper/commons-logging/troubleshooting.html
