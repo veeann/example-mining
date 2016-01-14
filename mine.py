@@ -1,36 +1,34 @@
-'''
-debug text are commented with #
-'''
+from collections import deque
 from urllib2 import urlopen, URLError
 from urlparse import urljoin, urlparse, urldefrag
 from argparse import ArgumentParser
 from bs4 import BeautifulSoup, UnicodeDammit
+from lxml.html.clean import Cleaner
+import lxml
 import language_check
 import re
 
 base_url = ""
 visited_pages = []
+pages_to_visit = deque([])
 nl_tool = language_check.LanguageTool('en-US')
+BLOCK_ELEMENTS = ['article', 'aside', 'blockquote', 'div', 'main', 'p', 'pre', 'section']
+ELEMENTS_TO_IGNORE = ['address', 'canvas', 'dd', 'dl', 'fieldset', 'figcaption', 'figure', 'footer', 'form', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'header', 'hgroup', 'hr', 'li', 'nav', 'noscript', 'ol', 'output', 'table', 'tfoot', 'ul', 'video']
+CAMEL_CASE_PATTERN = re.compile('[A-Z]*[a-z]+[A-Z]+')
 PUNCTUATION_LIST = [';', '(', ')', '=', '{', '}', '[', ']']
 
-'''
-highest ratio is equal to weight
-'''
-ERROR_WEIGHT = 0.4
-CODE_WEIGHT = 1.0
+ERROR_WEIGHT = 0.2
+CODE_WEIGHT = 1.5
 SCORE_TOTAL = ERROR_WEIGHT + CODE_WEIGHT
 
-'''
-ratios range from 0-1 without weight, highest is weight with weight
-get decimal percentage of total to limit to 1
-'''
-PUNCTUATION_WEIGHT = 0.7
+PUNCTUATION_WEIGHT = 0.9
 PARENTHESIS_WEIGHT = 1.0
 NEGATION_WEIGHT = 0.8
 COMMENT_WEIGHT = 0.7
 METHOD_WEIGHT = 0.5
 IMPORT_WEIGHT = 0.8
-CODE_TOTAL = PUNCTUATION_WEIGHT + PARENTHESIS_WEIGHT + NEGATION_WEIGHT + COMMENT_WEIGHT + METHOD_WEIGHT + IMPORT_WEIGHT
+CAMEL_WEIGHT = 0.7
+CODE_TOTAL = PUNCTUATION_WEIGHT + PARENTHESIS_WEIGHT + NEGATION_WEIGHT + COMMENT_WEIGHT + METHOD_WEIGHT + IMPORT_WEIGHT + CAMEL_WEIGHT
 
 SCORE_THRESHOLD = 0.1
 
@@ -44,11 +42,12 @@ def parse_arguments():
 	base_url = url_parts.scheme + '://' + url_parts.netloc + url_path
 	if url_path.rfind('/') < url_path.rfind('.'):
 		base_url = base_url[:base_url.rfind('/')]
-	get_links(args.url)
+	visited_pages.append(args.url)
+	pages_to_visit.append(args.url)
+	while len(pages_to_visit)>0:
+		visit(pages_to_visit.popleft())
 
-def get_links(url):
-	visited_pages.append(url)
-
+def visit(url):
 	if url.startswith(base_url) == False:
 		return
 
@@ -58,6 +57,10 @@ def get_links(url):
 		return
 
 	page = resp.read()
+	cleaner = Cleaner()
+	cleaner.javasript = True
+	cleaner.style = True
+	cleaner.kill_tags = ELEMENTS_TO_IGNORE
 	soup = BeautifulSoup(page, "lxml")
 
 	for link in soup.findAll('a'):
@@ -67,52 +70,38 @@ def get_links(url):
 			next_link = urljoin(url,link['href'])
 			next_link = urldefrag(next_link)[0]
 			if next_link not in visited_pages:
-				get_links(next_link)
+				visited_pages.append(next_link)
+				pages_to_visit.append(next_link)
 
 	print "visiting: " + url + "\n"
-	
+
+	clean_page = cleaner.clean_html(page)
+	soup = BeautifulSoup(clean_page, "lxml")
 	extract(soup)
 
-'''
-consider adding results of island parser to see if that will improve results since focus is only on Java
-also add splitting for introductory sentences using : delimiter
-use UnicodeDammit so encoding isn't hardcoded
-'''
 def extract(page):
-	'''
-	# uncomment this code for line-by-line checking
-	# if you do, please comment out the current code
-	lines = page.text.replace('\r', '\n').split("\n")
-	for line in lines:
-		if is_source_code(line):
-			encoding = UnicodeDammit(line).original_encoding
-			if not encoding == None:
-				print line.encode(encoding)
+	for block in page.findAll(BLOCK_ELEMENTS):
+		text = block.text
+		if not block.find(BLOCK_ELEMENTS)==None:
+			text = ""
+			for text in block:
+				if type(text)==NavigableString:
+					text += text
+			print text
+		if not text.strip=="":
+			print text.encode("utf-8")
+			if is_source_code(text):
+				print "RESULT: SOURCE CODE!"
 			else:
-				print line
-	'''
-	for possible_code in page.findAll():
-		if possible_code.name=='p' or possible_code.name=='pre':
-			print "analyzing:"
-			cleaned_text = clean(possible_code.text)
-			encoding = UnicodeDammit(cleaned_text).original_encoding
-			if not encoding == None:
-				print cleaned_text.encode(encoding)
-			else:
-				print cleaned_text
-			if is_source_code(cleaned_text):
-				print "RESULT: SOURCE CODE \(*O*)/"
-			else:
-				print "RESULT: NATURAL LANGUAGE (.__.)"
-			print ""
+				print "RESULT: NATURAL LANGUAGE~"
 
 def is_source_code(text):
+	text = clean(text)
 	word_count = get_word_count(text)
 	error_ratio = get_error_ratio(text, word_count) * ERROR_WEIGHT
 	code_ratio = get_code_ratio(text, word_count) * CODE_WEIGHT
 	score = error_ratio + code_ratio
 	score = score / SCORE_TOTAL
-	#print "score: " + str(score)
 	if score >= SCORE_THRESHOLD:
 		return True
 	return False
@@ -125,10 +114,6 @@ def clean (text):
 			new_text += line + "\n"
 	return new_text
 
-'''
-maybe there is a better way to do this
-maybe this is not the right way
-'''
 def get_word_count (text):
 	words = text.split()
 	word_count = len(words)
@@ -154,13 +139,11 @@ def get_code_ratio (text, word_count):
 	comment_ratio = get_comment_occurrences(text)  / float(word_count) * COMMENT_WEIGHT
 	method_ratio = get_method_occurrences(text)  / float(word_count) * METHOD_WEIGHT
 	import_ratio = get_import_occurrences(text)  / float(word_count) * IMPORT_WEIGHT
-	code_ratio = punctuation_ratio + parenthesis_ratio + negation_ratio + comment_ratio + method_ratio + import_ratio
+	camel_ratio = get_camel_case_occurrences(text) / float(word_count) * CAMEL_WEIGHT
+	code_ratio = punctuation_ratio + parenthesis_ratio + negation_ratio + comment_ratio + method_ratio + import_ratio + camel_ratio
 	code_ratio = code_ratio / CODE_TOTAL
 	return code_ratio
 
-'''
-find a more efficient way to do this if possible
-'''
 def get_punctuation_occurrences (text):
 	punctuation_count = 0
 	for punctuation in PUNCTUATION_LIST:
@@ -175,9 +158,6 @@ def get_negation_occurrences (text):
 	negation_count = len(re.findall("![a-zA-Z=]+", text))
 	return negation_count
 
-'''
-possibly include asterisks for comments
-'''
 def get_comment_occurrences (text):
 	possible_comments = re.findall("//[ \t\r\f\v\S]+\n", text)
 	comment_count = 0
@@ -193,5 +173,13 @@ def get_method_occurrences (text):
 def get_import_occurrences (text):
 	import_count = len(re.findall("import [a-zA-Z0-9. ]+;", text))
 	return import_count
+
+def get_camel_case_occurrences (text):
+	words = text.split()
+	camel_count = 0
+	for word in words:
+		if CAMEL_CASE_PATTERN.match(word):
+			camel_count += 1
+	return camel_count
 
 parse_arguments()

@@ -60,7 +60,7 @@ Additional Pages Tested:
 
 
 Final List:
-* cglib: https://github.com/cglib/cglib/wiki
+~* cglib: https://github.com/cglib/cglib/wiki
 	- https://github.com/cglib/cglib/wiki/How-To
 	- https://github.com/cglib/cglib/wiki/Tutorial
 * https://commons.apache.org/proper/commons-io/
@@ -71,7 +71,7 @@ Final List:
 	- https://commons.apache.org/proper/commons-logging/javadocs/api-release/org/apache/commons/logging/Log.html
 	* http://wiki.apache.org/commons/Logging
 		- http://wiki.apache.org/commons/Logging/FrequentlyAskedQuestions
-* https://github.com/google/guice/wiki
+~* https://github.com/google/guice/wiki
 	- https://github.com/google/guice/wiki/MinimizeMutability
 	- https://github.com/google/guice/wiki/Motivation
 	- https://github.com/google/guice/wiki/GettingStarted
@@ -102,7 +102,7 @@ Final List:
 	* https://github.com/mockito/mockito/wiki/
 		- https://github.com/mockito/mockito/wiki/Greedy-algorithm-of-verfication-InOrder
 		- https://github.com/mockito/mockito/wiki/Mocking-Object-Creation
-* http://logging.apache.org/
+* http://logging.apache.org/log4j/2.x/
 	- http://logging.apache.org/log4j/2.x/guidelines.html
 	- http://logging.apache.org/log4j/2.x/faq.html
 * https://commons.apache.org/proper/commons-lang/index.html
