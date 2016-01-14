@@ -2,7 +2,7 @@ from collections import deque
 from urllib2 import urlopen, URLError
 from urlparse import urljoin, urlparse, urldefrag
 from argparse import ArgumentParser
-from bs4 import BeautifulSoup, UnicodeDammit
+from bs4 import BeautifulSoup, NavigableString
 from lxml.html.clean import Cleaner
 import lxml
 import language_check
@@ -11,6 +11,7 @@ import re
 base_url = ""
 visited_pages = []
 pages_to_visit = deque([])
+count = 0
 nl_tool = language_check.LanguageTool('en-US')
 BLOCK_ELEMENTS = ['article', 'aside', 'blockquote', 'div', 'main', 'p', 'pre', 'section']
 ELEMENTS_TO_IGNORE = ['address', 'canvas', 'dd', 'dl', 'fieldset', 'figcaption', 'figure', 'footer', 'form', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'header', 'hgroup', 'hr', 'li', 'nav', 'noscript', 'ol', 'output', 'table', 'tfoot', 'ul', 'video']
@@ -18,7 +19,7 @@ CAMEL_CASE_PATTERN = re.compile('[A-Z]*[a-z]+[A-Z]+')
 PUNCTUATION_LIST = [';', '(', ')', '=', '{', '}', '[', ']']
 
 ERROR_WEIGHT = 0.2
-CODE_WEIGHT = 1.5
+CODE_WEIGHT = 1.0
 SCORE_TOTAL = ERROR_WEIGHT + CODE_WEIGHT
 
 PUNCTUATION_WEIGHT = 0.9
@@ -34,16 +35,22 @@ SCORE_THRESHOLD = 0.1
 
 def parse_arguments():
 	parser = ArgumentParser(description='Accept Keywords from Users')
-	parser.add_argument('-u', '--url', help='URL of webpage to scrape from', required=True)
+	# parser.add_argument('-u', '--url', help='URL of webpage to scrape from', required=True)
+	parser.add_argument('-f', '--filename', help='Name of the file containing a list of webpages to scrape from', required=True)
 	args = parser.parse_args()
-	global base_url
-	url_parts = urlparse(args.url)
-	url_path = url_parts.path
-	base_url = url_parts.scheme + '://' + url_parts.netloc + url_path
-	if url_path.rfind('/') < url_path.rfind('.'):
-		base_url = base_url[:base_url.rfind('/')]
-	visited_pages.append(args.url)
-	pages_to_visit.append(args.url)
+	# global base_url
+	# url_parts = urlparse(args.url)
+	# url_path = url_parts.path
+	# base_url = url_parts.scheme + '://' + url_parts.netloc + url_path
+	# if url_path.rfind('/') < url_path.rfind('.'):
+	# 	base_url = base_url[:base_url.rfind('/')]
+	# visited_pages.append(args.url)
+	# pages_to_visit.append(args.url)
+	file_with_urls = open(args.filename, 'r')
+	for line in file_with_urls.readlines():
+		if line.strip()=="":
+			break
+		pages_to_visit.append(line)
 	while len(pages_to_visit)>0:
 		visit(pages_to_visit.popleft())
 
@@ -61,25 +68,27 @@ def visit(url):
 	cleaner.javasript = True
 	cleaner.style = True
 	cleaner.kill_tags = ELEMENTS_TO_IGNORE
-	soup = BeautifulSoup(page, "lxml")
-
-	for link in soup.findAll('a'):
-		if link.has_attr('href'):
-			if link.has_attr('class') and 'history' in link['class']:
-				continue
-			next_link = urljoin(url,link['href'])
-			next_link = urldefrag(next_link)[0]
-			if next_link not in visited_pages:
-				visited_pages.append(next_link)
-				pages_to_visit.append(next_link)
-
-	print "visiting: " + url + "\n"
+	
+	# soup = BeautifulSoup(page, "lxml")
+	# for link in soup.findAll('a'):
+	# 	if link.has_attr('href'):
+	# 		if link.has_attr('class') and 'history' in link['class']:
+	# 			continue
+	# 		next_link = urljoin(url,link['href'])
+	# 		next_link = urldefrag(next_link)[0]
+	# 		if next_link not in visited_pages:
+	# 			visited_pages.append(next_link)
+	# 			pages_to_visit.append(next_link)
 
 	clean_page = cleaner.clean_html(page)
 	soup = BeautifulSoup(clean_page, "lxml")
-	extract(soup)
+	extract(soup, url)
 
-def extract(page):
+def extract(page, url):
+	global count
+	results_file = open("results-"+str(count)+".txt", 'w')
+	count += 1
+	results_file.write("visiting: " + url + "\n\n")
 	for block in page.findAll(BLOCK_ELEMENTS):
 		text = block.text
 		if not block.find(BLOCK_ELEMENTS)==None:
@@ -87,13 +96,15 @@ def extract(page):
 			for text in block:
 				if type(text)==NavigableString:
 					text += text
-			print text
 		if not text.strip=="":
-			print text.encode("utf-8")
+			results_file.write(text.encode("utf-8")+"\n")
 			if is_source_code(text):
-				print "RESULT: SOURCE CODE!"
+				results_file.write("RESULT: SOURCE CODE!\n")
 			else:
-				print "RESULT: NATURAL LANGUAGE~"
+				results_file.write("RESULT: NATURAL LANGUAGE~\n")
+			results_file.write("\n")
+	results_file.close()
+	print "Finished with: " + str(url) + " at file: results-" + str(count-1) + ".txt"
 
 def is_source_code(text):
 	text = clean(text)
